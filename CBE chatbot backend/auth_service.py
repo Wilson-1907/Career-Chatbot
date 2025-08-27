@@ -1,10 +1,10 @@
 from typing import Dict
 from dataclasses import dataclass
+from otp import generate_otp
 
-from utils.otp import generate_otp
+# In-memory store (replace with real DB later)
+_USERS: Dict[str, "User"] = {}
 
-# In-memory "database" (we'll swap with Supabase later)
-_USERS: Dict[str, "User"] = {}   # key = identifier (email or phone)
 
 @dataclass
 class User:
@@ -14,13 +14,15 @@ class User:
     otp: str | None = None
     is_verified: bool = False
 
+
 def request_login(identifier: str, email: str | None, phone: str | None) -> str:
-    """Create or fetch user and set OTP."""
+    """Create/fetch user and assign OTP."""
     user = _USERS.get(identifier) or User(identifier=identifier, email=email, phone=phone)
     code = generate_otp(4)
     user.otp = code
     _USERS[identifier] = user
     return code
+
 
 def verify_otp(identifier: str, otp: str) -> bool:
     user = _USERS.get(identifier)
@@ -28,7 +30,7 @@ def verify_otp(identifier: str, otp: str) -> bool:
         return False
     if user.otp == otp:
         user.is_verified = True
-        user.otp = None   # one-time use
+        user.otp = None  # one-time use
         _USERS[identifier] = user
         return True
     return False
