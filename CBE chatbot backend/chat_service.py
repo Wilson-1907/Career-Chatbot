@@ -1,4 +1,5 @@
-from models.chat_models import ChatMessage, ChatResponse
+from chat_models import ChatMessage, ChatResponse
+
 
 def simple_rule_engine(msg: str) -> str:
     text = msg.lower()
@@ -11,6 +12,7 @@ def simple_rule_engine(msg: str) -> str:
     if "art" in text or "design" in text:
         return "Awesome! Consider Design, Media, Fine Arts, or UX."
     return "Tell me your favorite subjects or interests, and I’ll suggest career paths."
+
 
 def handle_chat(payload: ChatMessage) -> ChatResponse:
     reply = simple_rule_engine(payload.message)
