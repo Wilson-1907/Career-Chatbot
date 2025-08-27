@@ -97,6 +97,25 @@
             border-radius: 8px;
             object-fit: cover;
         }
+
+        .error-message {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .loading-pulse {
+            animation: loadingPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loadingPulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -187,7 +206,7 @@
                                     <li><a class="dropdown-item" href="profile.html">
                                         <i class="fas fa-user me-2"></i>Profile
                                     </a></li>
-                                    <li><a class="dropdown-item" href="profile.html">
+                                    <li><a class="dropdown-item" href="history.html">
                                         <i class="fas fa-history me-2"></i>History
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
@@ -248,6 +267,16 @@
                                     <small>
                                         <span data-en="Messages in this session:" data-sw="Ujumbe katika kipindi hiki:">Messages in this session:</span>
                                         <span id="messageCount" class="fw-bold ms-1">0</span>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Backend Status Indicator -->
+                            <div class="text-center mt-2">
+                                <div id="backendStatus" class="bg-white bg-opacity-20 rounded-pill px-3 py-1 d-inline-block">
+                                    <small>
+                                        <i id="statusIcon" class="fas fa-circle text-success me-1"></i>
+                                        <span id="statusText">Backend Connected</span>
                                     </small>
                                 </div>
                             </div>
@@ -439,6 +468,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Backend Configuration
+        const BACKEND_URL = 'http://localhost:5173';
+        const CHAT_ENDPOINT = `${BACKEND_URL}/api/chat`;
+        
         // Supabase Configuration
         const SUPABASE_URL = 'https://your-project.supabase.co';
         const SUPABASE_ANON_KEY = 'your-anon-key';
@@ -449,13 +482,53 @@
         let messageCount = 0;
         let chatHistory = [];
         let isTyping = false;
+        let conversationId = null;
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             checkAuthState();
             loadChatHistory();
             initializeLanguage();
+            checkBackendStatus();
+            generateConversationId();
         });
+
+        // Generate unique conversation ID for this session
+        function generateConversationId() {
+            conversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Check backend connectivity
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/health`, {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    updateBackendStatus(true, 'Backend Connected');
+                } else {
+                    updateBackendStatus(false, 'Backend Error');
+                }
+            } catch (error) {
+                console.error('Backend connection error:', error);
+                updateBackendStatus(false, 'Backend Offline');
+            }
+        }
+
+        function updateBackendStatus(isOnline, statusText) {
+            const statusIcon = document.getElementById('statusIcon');
+            const statusTextElement = document.getElementById('statusText');
+            
+            if (isOnline) {
+                statusIcon.className = 'fas fa-circle text-success me-1';
+                statusTextElement.textContent = statusText;
+            } else {
+                statusIcon.className = 'fas fa-circle text-danger me-1';
+                statusTextElement.textContent = statusText;
+            }
+        }
 
         async function checkAuthState() {
             const { data: { session } } = await supabase.auth.getSession();
@@ -543,61 +616,100 @@
             // Show typing indicator
             showTypingIndicator();
             
-            // Save conversation to database
+            // Save user message to database immediately
             if (currentUser) {
-                await saveConversation(message, null);
+                await saveConversation(message, null, 'user');
                 await trackChatInteraction(message);
             }
             
-            // Simulate AI response with enhanced logic
-            setTimeout(async () => {
-                const response = generateAIResponse(message);
+            try {
+                // Send message to backend API
+                const response = await fetchAIResponse(message);
                 hideTypingIndicator();
                 addMessageToChat(response, 'bot');
                 
                 // Save AI response to database
                 if (currentUser) {
-                    await saveConversation(message, response);
+                    await saveConversation(message, response, 'assistant');
                 }
                 
                 // Update suggestion pills based on response
                 updateSuggestionPills(message);
                 
-            }, Math.random() * 2000 + 1000); // Random delay between 1-3 seconds
+            } catch (error) {
+                hideTypingIndicator();
+                console.error('Error getting AI response:', error);
+                addErrorMessage('Sorry, I\'m having trouble connecting to the AI service. Please try again later.');
+                
+                // Update backend status
+                updateBackendStatus(false, 'Connection Failed');
+            }
+        }
+
+        async function fetchAIResponse(message) {
+            try {
+                const requestData = {
+                    message: message,
+                    conversation_id: conversationId,
+                    user_id: currentUser?.id || 'anonymous',
+                    context: {
+                        platform: 'CBE Career Guide',
+                        language: localStorage.getItem('selectedLanguage') || 'en',
+                        pathway_focus: 'Kenya CBE System'
+                    }
+                };
+
+                const response = await fetch(CHAT_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Update backend status
+                updateBackendStatus(true, 'Backend Connected');
+                
+                // Return the AI response
+                return data.response || data.message || 'I apologize, but I couldn\'t generate a proper response. Please try rephrasing your question.';
+                
+            } catch (error) {
+                console.error('Backend API Error:', error);
+                
+                // Update backend status
+                updateBackendStatus(false, 'API Error');
+                
+                // Fallback to basic response
+                return getFallbackResponse(message);
+            }
+        }
+
+        function getFallbackResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Basic fallback responses when backend is unavailable
+            if (lowerMessage.includes('pathway') || lowerMessage.includes('cbe')) {
+                return "I'm currently having connectivity issues with my main AI service. However, I can tell you that Kenya has 4 main CBE pathways: STEM, Social Sciences, Arts & Sports, and Technical & Vocational. Please try your question again in a moment when my connection is restored.";
+            }
+            
+            if (lowerMessage.includes('university') || lowerMessage.includes('college')) {
+                return "I'm experiencing connection issues with my AI backend. For university information, I recommend visiting the official KUCCPS website or contacting universities directly. I'll be back to full functionality shortly.";
+            }
+            
+            return "I apologize, but I'm currently experiencing technical difficulties connecting to my AI service. Please try again in a few moments, or feel free to explore other sections of the CBE Career Guide while I reconnect.";
         }
 
         function sendQuickMessage(message) {
             const input = document.getElementById('chatInput');
             input.value = message;
             sendMessage();
-        }
-
-        function generateAIResponse(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            // Enhanced response logic with more comprehensive answers
-            if (lowerMessage.includes('pathway') || lowerMessage.includes('cbe')) {
-                return "Kenya has 4 main CBE pathways:\n\n🔬 **STEM (Science, Technology, Engineering & Mathematics)** - Perfect for students interested in research, innovation, and technology. Leads to careers like software development, engineering, medicine, and data science.\n\n👥 **Social Sciences** - Ideal for those passionate about understanding society and helping others. Opens doors to teaching, social work, law, journalism, and public service.\n\n🎨 **Arts & Sports** - Great for creative minds and athletes. Includes careers in graphic design, music, sports, film, and creative writing.\n\n🔧 **Technical & Vocational** - Hands-on pathway for practical skills. Leads to careers as electricians, mechanics, chefs, carpenters, and IT technicians.\n\nWhich pathway interests you most? I can provide more specific guidance!";
-            }
-            
-            if (lowerMessage.includes('salary') || lowerMessage.includes('pay') || lowerMessage.includes('earning')) {
-                return "Here are typical salary ranges in Kenya by sector:\n\n💰 **STEM Careers:**\n• Software Developer: KES 80,000 - 200,000\n• Engineer: KES 60,000 - 180,000\n• Data Scientist: KES 100,000 - 250,000\n• Medical Doctor: KES 120,000 - 400,000\n\n💰 **Social Sciences:**\n• Teacher: KES 30,000 - 70,000\n• Lawyer: KES 80,000 - 300,000\n• Social Worker: KES 35,000 - 80,000\n\n💰 **Technical & Vocational:**\n• Electrician: KES 35,000 - 80,000\n• Chef: KES 25,000 - 100,000\n• IT Technician: KES 40,000 - 90,000\n\nRemember: Experience, location, and skills greatly influence salary levels!";
-            }
-            
-            if (lowerMessage.includes('university') || lowerMessage.includes('college')) {
-                return "Here are top Kenyan universities by CBE pathway:\n\n🏛️ **For STEM:**\n• University of Nairobi - Medicine, Engineering\n• JKUAT - Technology, Engineering\n• Kenyatta University - Health Sciences\n\n🏛️ **For Social Sciences:**\n• University of Nairobi - Law, Arts\n• Kenyatta University - Education\n• Moi University - Social Sciences\n\n🏛️ **For Technical & Vocational:**\n• Kenya Polytechnic\n• Kenya Technical Trainers College\n• Various TVET institutions\n\n📋 **Entry Requirements:**\n• Public Universities: KCSE C+ and above\n• Private Universities: KCSE C+ and above\n• Technical Colleges: KCSE D+ and above\n\nFor official university selection, visit: selection.education.go.ke";
-            }
-            
-            // Default responses
-            const defaultResponses = [
-                "That's a great question! Based on Kenya's CBE system, I recommend exploring our pathway assessment to find careers that match your interests and skills.",
-                "I'm here to help you navigate Kenya's education and career landscape. Could you be more specific about what you'd like to know?",
-                "Let me help you with that! The CBE system offers many exciting opportunities. What specific area interests you most?",
-                "Great question! Kenya's job market is evolving rapidly. Which career field would you like to explore further?",
-                "I can provide detailed information about CBE pathways, career prospects, and education options in Kenya. What specific guidance do you need?"
-            ];
-            
-            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
         }
 
         function addMessageToChat(message, sender) {
@@ -609,7 +721,7 @@
                 messageDiv.innerHTML = `
                     <div class="flex-grow-1"></div>
                     <div class="bg-primary text-white rounded-4 p-4 shadow ms-auto" style="max-width: 70%;">
-                        <p class="mb-0">${message}</p>
+                        <p class="mb-0">${escapeHtml(message)}</p>
                     </div>
                     <div class="bg-secondary rounded-3 p-3 ms-3 shadow">
                         <i class="fas fa-user text-white"></i>
@@ -630,6 +742,31 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        function addErrorMessage(errorText) {
+            const chatContainer = document.getElementById('chatContainer');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'chat-message d-flex align-items-start mb-4';
+            errorDiv.innerHTML = `
+                <div class="bg-danger rounded-3 p-3 me-3 shadow">
+                    <i class="fas fa-exclamation-triangle text-white"></i>
+                </div>
+                <div class="error-message shadow border" style="max-width: 70%;">
+                    <i class="fas fa-wifi me-2"></i>${errorText}
+                    <div class="mt-2 small">
+                        <button onclick="checkBackendStatus()" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-sync-alt me-1"></i>Retry Connection
+                        </button>
+                        <button onclick="window.location.reload()" class="btn btn-light btn-sm">
+                            <i class="fas fa-refresh me-1"></i>Refresh Page
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.appendChild(errorDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
         function showTypingIndicator() {
             isTyping = true;
             const chatContainer = document.getElementById('chatContainer');
@@ -642,10 +779,10 @@
                 </div>
                 <div class="bg-white rounded-4 p-4 shadow border">
                     <div class="d-flex align-items-center text-muted">
-                        <div class="typing-indicator me-1">●</div>
-                        <div class="typing-indicator me-1" style="animation-delay: 0.2s">●</div>
-                        <div class="typing-indicator me-2" style="animation-delay: 0.4s">●</div>
-                        <span>AI is typing...</span>
+                        <div class="typing-indicator me-1 loading-pulse">●</div>
+                        <div class="typing-indicator me-1 loading-pulse" style="animation-delay: 0.2s">●</div>
+                        <div class="typing-indicator me-2 loading-pulse" style="animation-delay: 0.4s">●</div>
+                        <span>AI is thinking...</span>
                     </div>
                 </div>
             `;
@@ -692,7 +829,7 @@
             }
         }
 
-        async function saveConversation(message, response) {
+        async function saveConversation(message, response, role) {
             if (!currentUser) return;
             
             try {
@@ -701,8 +838,10 @@
                     .insert([
                         {
                             user_id: currentUser.id,
+                            conversation_id: conversationId,
                             message: message,
                             response: response,
+                            role: role,
                             timestamp: new Date().toISOString()
                         }
                     ]);
@@ -723,7 +862,10 @@
                         {
                             user_id: currentUser.id,
                             activity_type: 'chat_interaction',
-                            activity_data: { message_preview: message.substring(0, 50) },
+                            activity_data: { 
+                                message_preview: message.substring(0, 50),
+                                conversation_id: conversationId
+                            },
                             timestamp: new Date().toISOString()
                         }
                     ]);
@@ -742,6 +884,9 @@
             chatContainer.appendChild(welcomeMessage);
             messageCount = 0;
             updateMessageCount();
+            
+            // Generate new conversation ID for the new session
+            generateConversationId();
         }
 
         function showChatHistory() {
@@ -755,14 +900,15 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <small class="text-muted">${formatDate(chat.timestamp)}</small>
+                                <span class="badge bg-primary">${chat.conversation_id || 'Session'}</span>
                             </div>
                             <div class="mb-2">
                                 <div class="bg-primary bg-opacity-10 rounded p-3 mb-2">
-                                    <strong>You:</strong> ${chat.message}
+                                    <strong>You:</strong> ${escapeHtml(chat.message)}
                                 </div>
                                 ${chat.response ? `
                                     <div class="bg-light rounded p-3">
-                                        <strong>AI:</strong> ${chat.response}
+                                        <strong>AI:</strong> ${escapeHtml(chat.response)}
                                     </div>
                                 ` : ''}
                             </div>
@@ -779,17 +925,21 @@
             const chatMessages = document.querySelectorAll('.chat-message');
             const chatData = Array.from(chatMessages).map(msg => {
                 const isUser = msg.querySelector('.fa-user');
-                const text = msg.querySelector('p, div').textContent.trim();
+                const textElement = msg.querySelector('p, div');
+                const text = textElement ? textElement.textContent.trim() : '';
                 return {
                     sender: isUser ? 'User' : 'AI',
                     message: text,
                     timestamp: new Date().toISOString()
                 };
-            });
+            }).filter(item => item.message && !item.message.includes('AI is thinking'));
 
             const exportData = {
                 session_date: new Date().toISOString(),
+                conversation_id: conversationId,
                 message_count: messageCount,
+                backend_url: BACKEND_URL,
+                user_id: currentUser?.id || 'anonymous',
                 messages: chatData
             };
 
@@ -799,7 +949,7 @@
             
             const link = document.createElement('a');
             link.href = url;
-            link.download = `cbe_chat_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `cbe_chat_${conversationId}_${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -824,6 +974,17 @@
 
         function formatDate(dateString) {
             return new Date(dateString).toLocaleString();
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
         function showSuccessMessage(message) {
@@ -866,6 +1027,9 @@
 
         // Show auth section after page load
         document.getElementById('authSection').classList.remove('d-none');
+
+        // Check backend status periodically
+        setInterval(checkBackendStatus, 30000); // Check every 30 seconds
     </script>
 
 </body>
