@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+
 def fake_issue_token(user_id: str) -> dict:
     """Temporary fake token payload (replace with real JWT later)."""
     return {
