@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
-from routes import auth, chat, health
+import auth, chat
 
 load_dotenv()  # read .env if present
 
@@ -26,10 +26,10 @@ app.add_middleware(
 )
 
 # Routers (endpoints)
-app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(chat.router)
 
 @app.get("/", tags=["Home"])
 def home():
     return {"message": "CBE Chatbot backend is running ✅. Visit /docs for the API playground."}
+
