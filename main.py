@@ -8,7 +8,8 @@ import chat
 load_dotenv()  # read .env if present
 
 APP_NAME = os.getenv("APP_NAME", "CBE Career Chatbot Backend")
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://127.0.0.1:5500", 
+    "http://localhost:5500").split(",")
 
 app = FastAPI(
     title=APP_NAME,
@@ -31,5 +32,6 @@ app.include_router(chat.router)
 @app.get("/", tags=["Home"])
 def home():
     return {"message": "CBE Chatbot backend is running ✅. Visit /docs for the API playground."}
+
 
 
