@@ -1,4 +1,4 @@
-fastapi==0.116.1
-uvicorn==0.35.0
-pydantic[email]==2.11.7
-python-dotenv==1.0.1
+flask
+google-generativeai
+python-dotenv
+requests
