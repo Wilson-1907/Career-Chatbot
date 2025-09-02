@@ -9,7 +9,8 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configure Gemini with API key
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+genai.configure(api_key=os.environ.get("AIzaSyDDyRSRBIEC-OZYoiw9dNPwdWd9p8PMBLw
+"))
 model = genai.GenerativeModel("gemini-pro")
 
 # System instruction to restrict topics
@@ -42,3 +43,4 @@ def health():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
