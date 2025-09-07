@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Scenarios - CBE Career Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #5D5CDE;
+            --secondary: #FF6B35;
+            --accent: #4ECDC4;
+            --success: #45B7D1;
+            --kenya-black: #000000;
+            --kenya-red: #CE1126;
+            --kenya-green: #006B3F;
+            --kenya-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e6efff 50%, #f0f8ff 100%);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .gradient-kenya {
+            background: linear-gradient(135deg, var(--kenya-green) 0%, var(--kenya-red) 50%, var(--kenya-black) 100%);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            opacity: 0.9;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .scenario-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .scenario-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .choice-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .choice-option.selected {
+            border-color: var(--primary) !important;
+            background-color: rgba(93, 92, 222, 0.1) !important;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+        }
+
+        .footer {
+            background-color: #212529;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top border-bottom">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <div class="gradient-kenya rounded-3 me-3 p-2 shadow">
+                    <i class="fas fa-graduation-cap text-white fs-5"></i>
+                </div>
+                <div>
+                    <span class="fw-bold fs-4 text-primary">CBE Career Guide</span>
+                    <div class="small text-muted d-none d-sm-block">🇰🇪 Ministry of Education Kenya</div>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="chat.html">
+                            <i class="fas fa-comments me-2"></i>AI Chat
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="assessment.html">
+                            <i class="fas fa-clipboard-list me-2"></i>Assessment
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pathways.html">
+                            <i class="fas fa-route me-2"></i>Pathways
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="careers.html">
+                            <i class="fas fa-briefcase me-2"></i>Careers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="scenarios.html">
+                            <i class="fas fa-gamepad me-2"></i>Scenarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="resources.html">
+                            <i class="fas fa-book me-2"></i>Resources
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center">
+                    <select id="languageSelect" onchange="changeLanguage()" class="form-select form-select-sm me-3"
+                        style="width: auto;">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="sw">🇰🇪 Kiswahili</option>
+                    </select>
+
+                    <div id="authSection" class="d-none">
+                        <div id="notLoggedIn" class="d-flex gap-2">
+                            <a href="login.html" class="btn btn-outline-primary btn-sm">Login</a>
+                            <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
+                        </div>
+
+                        <div id="loggedIn" class="d-none">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="fas fa-user me-1"></i>
+                                    <span id="userName">Student</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="profile.html">Profile</a></li>
+                                    <li><a class="dropdown-item" href="history.html">History</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="signOut()">Sign Out</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container py-4">
+
+        <!-- Scenario Selection Screen -->
+        <div id="scenarioSelection">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold mb-4">
+                    <span data-en="Career Scenarios" data-sw="Hali za Kazi">Career Scenarios</span>
+                </h1>
+                <p class="lead text-muted col-lg-8 mx-auto">
+                    <span
+                        data-en="Experience real-world career situations through interactive scenarios. Make decisions and see how they impact your career journey."
+                        data-sw="Pata uzoefu wa hali za ukweli za kazi kupitia hali za mwingiliano. Fanya maamuzi na uone jinsi yanavyoathiri safari yako ya kazi.">
+                        Experience real-world career situations through interactive scenarios. Make decisions and see
+                        how they impact your career journey.
+                    </span>
+                </p>
+            </div>
+
+            <!-- Scenario Categories -->
+            <div class="row g-4 mb-5">
+
+                <!-- STEM Scenario -->
+                <div class="col-lg-6">
+                    <div class="card scenario-hero h-100 p-4"
+                        style="background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);">
+                        <div class="position-relative">
+                            <img src="/images/biracial-boy-engaged-science-experiment-school-classroom-with-copy-space_13339-365460.jpg"
+                                alt="STEM Scenario"
+                                class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-10 rounded-3">
+
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3 me-4">
+                                        <i class="fas fa-flask fs-1"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1">
+                                            <span data-en="STEM Challenge" data-sw="Changamoto ya STEM">STEM
+                                                Challenge</span>
+                                        </h2>
+                                        <p class="mb-0 opacity-75">
+                                            <span data-en="Software Development Project"
+                                                data-sw="Mradi wa Ukuzaji wa Programu">Software Development
+                                                Project</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mb-4 opacity-90">
+                                    <span
+                                        data-en="You're a junior software developer tasked with creating a mobile app. Navigate through real challenges and make decisions that affect your project's success."
+                                        data-sw="Wewe ni msanidi programu mdogo uliyepangiwa kuunda programu ya simu. Pita changamoto za ukweli na fanya maamuzi yanayoathiri mafanikio ya mradi wako.">
+                                        You're a junior software developer tasked with creating a mobile app. Navigate
+                                        through real challenges and make decisions that affect your project's success.
+                                    </span>
+                                </p>
+
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 opacity-75"></i>
+                                            <small>15-20 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-users me-2 opacity-75"></i>
+                                            <small>Team-based</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-trophy me-2 opacity-75"></i>
+                                            <small>XP Rewards</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-brain me-2 opacity-75"></i>
+                                            <small>Problem Solving</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="startScenario('stem')" class="btn btn-light btn-lg">
+                                    <i class="fas fa-play me-2"></i>
+                                    <span data-en="Start Challenge" data-sw="Anza Changamoto">Start Challenge</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Sciences Scenario -->
+                <div class="col-lg-6">
+                    <div class="card scenario-hero h-100 p-4"
+                        style="background: linear-gradient(135deg, #10B981 0%, #14B8A6 100%);">
+                        <div class="position-relative">
+                            <img src="/images/cheerful-teen-girl-studying-sitting-her-bed_13339-233782.jpg"
+                                alt="Social Scenario"
+                                class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-10 rounded-3">
+
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3 me-4">
+                                        <i class="fas fa-users fs-1"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1">
+                                            <span data-en="Leadership Challenge"
+                                                data-sw="Changamoto ya Uongozi">Leadership Challenge</span>
+                                        </h2>
+                                        <p class="mb-0 opacity-75">
+                                            <span data-en="Community Project Management"
+                                                data-sw="Usimamizi wa Mradi wa Jamii">Community Project
+                                                Management</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mb-4 opacity-90">
+                                    <span
+                                        data-en="Lead a community development project as a social worker. Handle stakeholder conflicts, budget constraints, and timeline pressures."
+                                        data-sw="Ongoza mradi wa maendeleo ya jamii kama mfanyakazi wa kijamii. Shughulikia migogoro ya wadau, vikwazo vya bajeti, na shinikizo la muda.">
+                                        Lead a community development project as a social worker. Handle stakeholder
+                                        conflicts, budget constraints, and timeline pressures.
+                                    </span>
+                                </p>
+
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 opacity-75"></i>
+                                            <small>20-25 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-handshake me-2 opacity-75"></i>
+                                            <small>Negotiation</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-trophy me-2 opacity-75"></i>
+                                            <small>Leadership XP</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-heart me-2 opacity-75"></i>
+                                            <small>Empathy Skills</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="startScenario('social')" class="btn btn-light btn-lg">
+                                    <i class="fas fa-play me-2"></i>
+                                    <span data-en="Start Challenge" data-sw="Anza Changamoto">Start Challenge</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arts & Sports Scenario -->
+                <div class="col-lg-6">
+                    <div class="card scenario-hero h-100 p-4"
+                        style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+                        <div class="position-relative">
+                            <img src="/images/summer-sports-concept_1284-9394.jpg" alt="Arts Scenario"
+                                class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-10 rounded-3">
+
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3 me-4">
+                                        <i class="fas fa-palette fs-1"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1">
+                                            <span data-en="Creative Challenge" data-sw="Changamoto ya Ubunifu">Creative
+                                                Challenge</span>
+                                        </h2>
+                                        <p class="mb-0 opacity-75">
+                                            <span data-en="Brand Design Campaign"
+                                                data-sw="Kampeni ya Muundo wa Chapa">Brand Design Campaign</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mb-4 opacity-90">
+                                    <span
+                                        data-en="Create a complete brand identity for a new Kenyan startup. Balance creativity with client requirements and market demands."
+                                        data-sw="Unda utambulisho kamili wa chapa kwa kampuni mpya ya Kenya. Sawazisha ubunifu na mahitaji ya mteja na mahitaji ya soko.">
+                                        Create a complete brand identity for a new Kenyan startup. Balance creativity
+                                        with client requirements and market demands.
+                                    </span>
+                                </p>
+
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 opacity-75"></i>
+                                            <small>18-22 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-palette me-2 opacity-75"></i>
+                                            <small>Creative Process</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-trophy me-2 opacity-75"></i>
+                                            <small>Art XP</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-lightbulb me-2 opacity-75"></i>
+                                            <small>Innovation</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="startScenario('arts')" class="btn btn-light btn-lg">
+                                    <i class="fas fa-play me-2"></i>
+                                    <span data-en="Start Challenge" data-sw="Anza Changamoto">Start Challenge</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical & Vocational Scenario -->
+                <div class="col-lg-6">
+                    <div class="card scenario-hero h-100 p-4"
+                        style="background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);">
+                        <div class="position-relative">
+                            <img src="/images/workers-working-construction-site_1048944-951263.jpg"
+                                alt="Technical Scenario"
+                                class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover opacity-10 rounded-3">
+
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3 me-4">
+                                        <i class="fas fa-tools fs-1"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1">
+                                            <span data-en="Technical Challenge"
+                                                data-sw="Changamoto ya Kiufundi">Technical Challenge</span>
+                                        </h2>
+                                        <p class="mb-0 opacity-75">
+                                            <span data-en="Construction Site Management"
+                                                data-sw="Usimamizi wa Uwanda wa Ujenzi">Construction Site
+                                                Management</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mb-4 opacity-90">
+                                    <span
+                                        data-en="Manage a construction project as a site supervisor. Handle safety protocols, resource allocation, and quality control."
+                                        data-sw="Simamia mradi wa ujenzi kama msimamizi wa uwanda. Shughulikia taratibu za usalama, ugawaji wa rasilimali, na udhibiti wa ubora.">
+                                        Manage a construction project as a site supervisor. Handle safety protocols,
+                                        resource allocation, and quality control.
+                                    </span>
+                                </p>
+
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 opacity-75"></i>
+                                            <small>16-20 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-hard-hat me-2 opacity-75"></i>
+                                            <small>Safety Focus</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-trophy me-2 opacity-75"></i>
+                                            <small>Technical XP</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-cogs me-2 opacity-75"></i>
+                                            <small>Problem Solving</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="startScenario('technical')" class="btn btn-light btn-lg">
+                                    <i class="fas fa-play me-2"></i>
+                                    <span data-en="Start Challenge" data-sw="Anza Changamoto">Start Challenge</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous Scenarios -->
+            <div class="card scenario-card rounded-4 p-4 p-md-5 mb-5">
+                <h2 class="fw-bold mb-4">
+                    <span data-en="Your Scenario Progress" data-sw="Maendeleo Yako ya Hali">Your Scenario
+                        Progress</span>
+                </h2>
+
+                <div class="row g-4" id="scenarioProgress">
+                    <!-- Progress will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Scenario Game Screen -->
+        <div id="scenarioGame" class="d-none">
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+
+                    <!-- Game Header -->
+                    <div class="card scenario-card rounded-4 p-4 mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2 class="fw-bold mb-2" id="scenarioTitle">Scenario Title</h2>
+                                <p class="text-muted mb-0" id="scenarioSubtitle">Scenario Description</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="d-flex align-items-center justify-content-md-end gap-3">
+                                    <div class="text-center">
+                                        <div class="progress-ring">
+                                            <svg class="w-100 h-100" viewBox="0 0 36 36">
+                                                <path class="text-muted" fill="none" stroke="currentColor"
+                                                    stroke-width="3" d="M18 2.0845
+                                                         a 15.9155 15.9155 0 0 1 0 31.831
+                                                         a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                <path id="progressPath" class="text-primary" fill="none"
+                                                    stroke="currentColor" stroke-width="3" stroke-dasharray="30, 100" d="M18 2.0845
+                                                         a 15.9155 15.9155 0 0 1 0 31.831
+                                                         a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                            </svg>
+                                        </div>
+                                        <small class="text-muted">Progress</small>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="h4 mb-0 text-warning" id="scoreDisplay">0</div>
+                                        <small class="text-muted">Score</small>
+                                    </div>
+                                    <button onclick="exitScenario()" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-times me-1"></i>Exit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Game Content -->
+                    <div class="card scenario-card rounded-4 p-4 p-md-5">
+
+                        <!-- Situation Description -->
+                        <div class="mb-5">
+                            <h3 class="fw-bold mb-3" id="situationTitle">Situation</h3>
+                            <div class="bg-light rounded-3 p-4">
+                                <p class="mb-0" id="situationDescription">
+                                    Situation description will appear here...
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Choices -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-4">
+                                <span data-en="What would you do?" data-sw="Ungefanya nini?">What would you do?</span>
+                            </h4>
+                            <div id="choicesContainer" class="row g-3">
+                                <!-- Choices will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button onclick="previousSituation()" id="prevBtn" class="btn btn-outline-secondary"
+                                disabled>
+                                <i class="fas fa-arrow-left me-2"></i>
+                                <span data-en="Previous" data-sw="Iliyotangulia">Previous</span>
+                            </button>
+                            <button onclick="nextSituation()" id="nextBtn" class="btn btn-primary" disabled>
+                                <span data-en="Continue" data-sw="Endelea">Continue</span>
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scenario Results Screen -->
+        <div id="scenarioResults" class="d-none">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+
+                    <!-- Results Header -->
+                    <div class="card scenario-card rounded-4 p-4 p-md-5 mb-4 text-center">
+                        <div class="gradient-bg rounded-4 d-inline-flex align-items-center justify-content-center mb-4"
+                            style="width: 96px; height: 96px;">
+                            <i class="fas fa-trophy text-white fs-1"></i>
+                        </div>
+                        <h1 class="display-5 fw-bold mb-3">
+                            <span data-en="Scenario Complete!" data-sw="Hali Imekamilika!">Scenario Complete!</span>
+                        </h1>
+                        <p class="lead text-muted mb-4" id="resultsDescription">
+                            Great job completing the scenario! Here's how you performed.
+                        </p>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <h3 class="text-primary mb-1" id="finalScore">85</h3>
+                                <p class="text-muted mb-0">Final Score</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 class="text-success mb-1" id="xpEarned">+50</h3>
+                                <p class="text-muted mb-0">XP Earned</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 class="text-warning mb-1" id="timeCompleted">12:34</h3>
+                                <p class="text-muted mb-0">Time</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Analysis -->
+                    <div class="card scenario-card rounded-4 p-4 p-md-5 mb-4">
+                        <h2 class="fw-bold mb-4">
+                            <span data-en="Performance Analysis" data-sw="Uchambuzi wa Utendaji">Performance
+                                Analysis</span>
+                        </h2>
+                        <div id="performanceAnalysis">
+                            <!-- Analysis will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center">
+                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                            <button onclick="retryScenario()" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-redo me-2"></i>
+                                <span data-en="Try Again" data-sw="Jaribu Tena">Try Again</span>
+                            </button>
+                            <button onclick="backToScenarios()" class="btn btn-primary btn-lg">
+                                <i class="fas fa-list me-2"></i>
+                                <span data-en="Choose Another Scenario" data-sw="Chagua Hali Nyingine">Choose Another
+                                    Scenario</span>
+                            </button>
+                            <a href="assessment.html" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                <span data-en="Take Assessment" data-sw="Chukua Tathmini">Take Assessment</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <p class="mb-0 small text-light-emphasis">
+                        © 2025 CBE Career Guide. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 small fw-medium">
+                        Developed by <span class="text-info fw-bold">Code Champ</span> 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://vxoiunxiaxhxhpbajjgl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4b2l1bnhpYXhoeGhwYmFqamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNTIzMjQsImV4cCI6MjA3MjgyODMyNH0.wR7ANQfYOKaQg1sh6067TX9u9p5dtwoM8FsfmiwztPk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let currentScenario = null;
+        let currentSituation = 0;
+        let score = 0;
+        let choices = [];
+        let startTime = null;
+
+        // Scenario data
+        const scenarios = {
+            stem: {
+                title: 'Software Development Challenge',
+                subtitle: 'Mobile App Development Project',
+                situations: [
+                    {
+                        title: 'Project Planning',
+                        description: 'Your team has been assigned to develop a mobile app for a local business. The client wants a delivery tracking app, but the timeline is tight - only 6 weeks. Your project manager asks for your input on the approach.',
+                        choices: [
+                            { text: 'Suggest using a proven framework to speed up development', points: 20, feedback: 'Good choice! Using established frameworks reduces development time and bugs.' },
+                            { text: 'Recommend building everything from scratch for customization', points: 5, feedback: 'While customization is good, this approach might not meet the tight deadline.' },
+                            { text: 'Propose reducing features to meet the deadline', points: 15, feedback: 'Practical approach, but make sure core functionality isn\'t compromised.' },
+                            { text: 'Ask for timeline extension to ensure quality', points: 10, feedback: 'Quality is important, but flexibility with deadlines shows good project management.' }
+                        ]
+                    },
+                    {
+                        title: 'Technical Challenge',
+                        description: 'During development, you encounter a bug that affects the app\'s core functionality. The bug is complex and might take days to fix properly. The deadline is approaching fast.',
+                        choices: [
+                            { text: 'Work overtime to fix the bug properly', points: 25, feedback: 'Excellent! Quality should never be compromised, even under pressure.' },
+                            { text: 'Implement a quick workaround', points: 10, feedback: 'While this saves time, technical debt might cause bigger problems later.' },
+                            { text: 'Ask a senior developer for help', points: 20, feedback: 'Smart move! Collaboration and seeking help shows maturity.' },
+                            { text: 'Hide the bug and hope it\'s not noticed', points: 0, feedback: 'Never hide problems! This could damage your reputation and the project.' }
+                        ]
+                    },
+                    {
+                        title: 'Client Presentation',
+                        description: 'It\'s time to present your app to the client. During the demo, they request a major feature change that would require significant additional work. How do you respond?',
+                        choices: [
+                            { text: 'Agree immediately to please the client', points: 5, feedback: 'While pleasing clients is good, unrealistic promises can backfire.' },
+                            { text: 'Explain the impact and propose alternatives', points: 25, feedback: 'Perfect! Clear communication about constraints while offering solutions.' },
+                            { text: 'Refuse the change completely', points: 10, feedback: 'Too rigid. Flexibility and compromise are important in client relationships.' },
+                            { text: 'Promise to add it for free after launch', points: 15, feedback: 'Shows goodwill, but make sure the scope is clearly defined.' }
+                        ]
+                    }
+                ]
+            },
+            social: {
+                title: 'Community Development Project',
+                subtitle: 'Leading Social Change Initiative',
+                situations: [
+                    {
+                        title: 'Stakeholder Meeting',
+                        description: 'You\'re leading a community water project. During a stakeholder meeting, two groups have conflicting priorities: one wants immediate well drilling, another wants a comprehensive water management system.',
+                        choices: [
+                            { text: 'Side with the group that has more influence', points: 5, feedback: 'Politics shouldn\'t drive decisions. Focus on community needs.' },
+                            { text: 'Facilitate a discussion to find common ground', points: 25, feedback: 'Excellent leadership! Bringing people together creates better solutions.' },
+                            { text: 'Make the decision yourself based on your expertise', points: 15, feedback: 'Your expertise matters, but community buy-in is crucial for success.' },
+                            { text: 'Postpone the decision to avoid conflict', points: 10, feedback: 'Sometimes delay is needed, but don\'t avoid difficult conversations forever.' }
+                        ]
+                    },
+                    {
+                        title: 'Budget Constraints',
+                        description: 'Halfway through the project, you discover the budget will only cover 60% of the planned work. The community is expecting full delivery. What\'s your approach?',
+                        choices: [
+                            { text: 'Continue as planned and hope for additional funding', points: 5, feedback: 'Hope isn\'t a strategy. Transparent communication is essential.' },
+                            { text: 'Immediately inform all stakeholders about the situation', points: 25, feedback: 'Transparency builds trust and allows for collaborative problem-solving.' },
+                            { text: 'Quietly reduce the scope without telling anyone', points: 0, feedback: 'Deception will destroy trust and damage your professional reputation.' },
+                            { text: 'Fundraise personally to cover the shortfall', points: 20, feedback: 'Shows commitment, but ensure it\'s sustainable and transparent.' }
+                        ]
+                    },
+                    {
+                        title: 'Community Resistance',
+                        description: 'Some community members are resisting the project, believing it will disrupt their traditional way of life. They\'re mobilizing others to oppose the initiative.',
+                        choices: [
+                            { text: 'Push forward despite the resistance', points: 5, feedback: 'Forcing change rarely works. Understanding concerns is crucial.' },
+                            { text: 'Organize community dialogue sessions', points: 25, feedback: 'Perfect! Listening and addressing concerns builds stronger community support.' },
+                            { text: 'Abandon the project to avoid conflict', points: 10, feedback: 'Sometimes withdrawal is necessary, but explore all options first.' },
+                            { text: 'Focus only on supporters and ignore resisters', points: 15, feedback: 'This creates division. Inclusive approaches work better long-term.' }
+                        ]
+                    }
+                ]
+            },
+            arts: {
+                title: 'Brand Design Campaign',
+                subtitle: 'Creative Identity Project',
+                situations: [
+                    {
+                        title: 'Creative Brief',
+                        description: 'A Kenyan eco-tourism startup wants a brand identity that appeals to international tourists while respecting local culture. They want something "modern but authentic." Your initial concepts are due in 3 days.',
+                        choices: [
+                            { text: 'Research extensively before sketching any ideas', points: 25, feedback: 'Excellent! Understanding the culture and market is crucial for authentic design.' },
+                            { text: 'Start with trendy international design styles', points: 10, feedback: 'Trends are useful, but authentic local connection should come first.' },
+                            { text: 'Copy successful tourism brands from other countries', points: 0, feedback: 'Copying lacks originality and won\'t reflect Kenya\'s unique identity.' },
+                            { text: 'Focus on traditional Kenyan motifs only', points: 15, feedback: 'Cultural authenticity is important, but consider the international audience too.' }
+                        ]
+                    },
+                    {
+                        title: 'Client Feedback',
+                        description: 'The client loves your cultural elements but says the design is "too African" for international markets. They want something more "universal." How do you respond?',
+                        choices: [
+                            { text: 'Completely redesign removing all cultural elements', points: 5, feedback: 'This loses the authentic connection that makes the brand unique.' },
+                            { text: 'Educate the client on the value of authentic cultural branding', points: 25, feedback: 'Perfect! Help clients understand how authenticity creates stronger brand differentiation.' },
+                            { text: 'Refuse to change your design', points: 10, feedback: 'Standing by your vision is good, but collaboration is also important.' },
+                            { text: 'Create two versions - one for local, one for international use', points: 20, feedback: 'Practical solution, though it may dilute brand consistency.' }
+                        ]
+                    },
+                    {
+                        title: 'Project Deadline',
+                        description: 'With one day left, the client requests major revisions that would require 3 days of work. They threaten to find another designer if you can\'t deliver on time.',
+                        choices: [
+                            { text: 'Work all night to meet their demands', points: 15, feedback: 'Dedication is admirable, but this sets unrealistic expectations for future projects.' },
+                            { text: 'Explain the time constraints and negotiate an extension', points: 25, feedback: 'Professional communication about realistic timelines protects quality and relationships.' },
+                            { text: 'Rush the work to meet the deadline', points: 5, feedback: 'Rushing compromises quality and can damage your professional reputation.' },
+                            { text: 'Let them find another designer', points: 10, feedback: 'Sometimes walking away is right, but explore all options first.' }
+                        ]
+                    }
+                ]
+            },
+            technical: {
+                title: 'Construction Site Management',
+                subtitle: 'Safety and Quality Leadership',
+                situations: [
+                    {
+                        title: 'Safety Protocol',
+                        description: 'You arrive at the construction site to find workers not wearing proper safety equipment. The project is behind schedule, and the site manager says safety checks are slowing down progress.',
+                        choices: [
+                            { text: 'Enforce safety protocols immediately, regardless of delays', points: 25, feedback: 'Excellent! Safety should never be compromised for speed.' },
+                            { text: 'Allow it this time but warn workers about future compliance', points: 10, feedback: 'Safety rules must be consistent. One accident can have serious consequences.' },
+                            { text: 'Compromise by requiring safety gear only for high-risk tasks', points: 15, feedback: 'All tasks carry risks. Comprehensive safety protection is essential.' },
+                            { text: 'Focus on schedule and address safety later', points: 0, feedback: 'Never prioritize schedule over safety. This could lead to serious injuries.' }
+                        ]
+                    },
+                    {
+                        title: 'Quality Control',
+                        description: 'During inspection, you notice the concrete mix doesn\'t meet specifications. Using it would save time and money, but might affect the building\'s long-term durability.',
+                        choices: [
+                            { text: 'Use the concrete since it\'s already mixed', points: 0, feedback: 'Poor quality materials can lead to structural failures and safety issues.' },
+                            { text: 'Reject the concrete and order a new batch', points: 25, feedback: 'Correct! Quality standards exist for safety and structural integrity.' },
+                            { text: 'Use it for non-critical areas only', points: 15, feedback: 'Better than using it everywhere, but standards should be consistent.' },
+                            { text: 'Get a second opinion before deciding', points: 20, feedback: 'Seeking expert input is wise, but don\'t delay critical quality decisions.' }
+                        ]
+                    },
+                    {
+                        title: 'Resource Management',
+                        description: 'Your material delivery is delayed by 2 days due to supplier issues. The client is pressuring for on-time completion, and workers are idle. What\'s your response?',
+                        choices: [
+                            { text: 'Send workers to other project sites temporarily', points: 20, feedback: 'Good resource management! Keeping the team productive while waiting.' },
+                            { text: 'Use alternative materials that are immediately available', points: 15, feedback: 'Practical, but ensure alternatives meet the same quality standards.' },
+                            { text: 'Have workers wait and charge the client for the delay', points: 10, feedback: 'While delays aren\'t your fault, proactive solutions serve clients better.' },
+                            { text: 'Communicate transparently with the client and adjust timeline', points: 25, feedback: 'Perfect! Honest communication builds trust and manages expectations.' }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAuthState();
+            loadScenarioProgress();
+        });
+
+        async function checkAuthState() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                showLoggedInState();
+            } else {
+                showLoggedOutState();
+            }
+        }
+
+        function showLoggedInState() {
+            document.getElementById('notLoggedIn').classList.add('d-none');
+            document.getElementById('loggedIn').classList.remove('d-none');
+
+            if (currentUser.user_metadata?.full_name) {
+                document.getElementById('userName').textContent = currentUser.user_metadata.full_name;
+            }
+        }
+
+        function showLoggedOutState() {
+            document.getElementById('notLoggedIn').classList.remove('d-none');
+            document.getElementById('loggedIn').classList.add('d-none');
+        }
+
+        async function signOut() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+
+                currentUser = null;
+                showLoggedOutState();
+
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        function loadScenarioProgress() {
+            // Simulate user progress data
+            const progressData = [
+                { pathway: 'STEM', completed: 2, total: 3, score: 85 },
+                { pathway: 'Social Sciences', completed: 1, total: 3, score: 92 },
+                { pathway: 'Arts & Sports', completed: 0, total: 3, score: 0 },
+                { pathway: 'Technical', completed: 3, total: 3, score: 78 }
+            ];
+
+            const container = document.getElementById('scenarioProgress');
+            container.innerHTML = progressData.map(item => `
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary">${item.pathway}</h5>
+                            <div class="mb-3">
+                                <div class="h2 mb-1">${item.completed}/${item.total}</div>
+                                <small class="text-muted">Scenarios Completed</small>
+                            </div>
+                            ${item.score > 0 ? `
+                                <div class="mb-3">
+                                    <div class="h4 text-success mb-1">${item.score}%</div>
+                                    <small class="text-muted">Best Score</small>
+                                </div>
+                            ` : '<div class="mb-3"><small class="text-muted">Not started</small></div>'}
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar" style="width: ${(item.completed / item.total) * 100}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startScenario(scenarioType) {
+            currentScenario = scenarios[scenarioType];
+            currentSituation = 0;
+            score = 0;
+            choices = [];
+            startTime = new Date();
+
+            document.getElementById('scenarioSelection').classList.add('d-none');
+            document.getElementById('scenarioGame').classList.remove('d-none');
+
+            document.getElementById('scenarioTitle').textContent = currentScenario.title;
+            document.getElementById('scenarioSubtitle').textContent = currentScenario.subtitle;
+
+            showCurrentSituation();
+        }
+
+        function showCurrentSituation() {
+            const situation = currentScenario.situations[currentSituation];
+
+            document.getElementById('situationTitle').textContent = situation.title;
+            document.getElementById('situationDescription').textContent = situation.description;
+
+            // Update progress
+            const progress = ((currentSituation + 1) / currentScenario.situations.length) * 100;
+            document.getElementById('progressPath').style.strokeDasharray = `${progress}, 100`;
+
+            // Show choices
+            const choicesContainer = document.getElementById('choicesContainer');
+            choicesContainer.innerHTML = situation.choices.map((choice, index) => `
+                <div class="col-12">
+                    <div class="card choice-option border-2 p-3" onclick="selectChoice(${index})">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-primary rounded-circle" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                    ${String.fromCharCode(65 + index)}
+                                </span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0">${choice.text}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update buttons
+            document.getElementById('prevBtn').disabled = currentSituation === 0;
+            document.getElementById('nextBtn').disabled = true;
+        }
+
+        function selectChoice(choiceIndex) {
+            // Remove previous selections
+            document.querySelectorAll('.choice-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            // Add selection to clicked option
+            const selectedOption = document.querySelectorAll('.choice-option')[choiceIndex];
+            selectedOption.classList.add('selected');
+
+            // Store choice
+            const situation = currentScenario.situations[currentSituation];
+            const choice = situation.choices[choiceIndex];
+
+            choices[currentSituation] = {
+                choiceIndex: choiceIndex,
+                points: choice.points,
+                feedback: choice.feedback
+            };
+
+            // Update score
+            score += choice.points;
+            document.getElementById('scoreDisplay').textContent = score;
+
+            // Enable next button
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextSituation() {
+            if (currentSituation < currentScenario.situations.length - 1) {
+                currentSituation++;
+                showCurrentSituation();
+
+                // Restore choice if user goes back and forward
+                if (choices[currentSituation]) {
+                    const choiceIndex = choices[currentSituation].choiceIndex;
+                    document.querySelectorAll('.choice-option')[choiceIndex].classList.add('selected');
+                    document.getElementById('nextBtn').disabled = false;
+                }
+            } else {
+                // Scenario complete
+                completeScenario();
+            }
+        }
+
+        function previousSituation() {
+            if (currentSituation > 0) {
+                currentSituation--;
+                showCurrentSituation();
+
+                // Restore previous choice
+                if (choices[currentSituation]) {
+                    const choiceIndex = choices[currentSituation].choiceIndex;
+                    document.querySelectorAll('.choice-option')[choiceIndex].classList.add('selected');
+                    document.getElementById('nextBtn').disabled = false;
+                }
+            }
+        }
+
+        function completeScenario() {
+            const endTime = new Date();
+            const completionTime = Math.round((endTime - startTime) / 1000);
+            const minutes = Math.floor(completionTime / 60);
+            const seconds = completionTime % 60;
+
+            document.getElementById('scenarioGame').classList.add('d-none');
+            document.getElementById('scenarioResults').classList.remove('d-none');
+
+            // Show results
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('xpEarned').textContent = '+' + Math.round(score * 0.6);
+            document.getElementById('timeCompleted').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            // Show performance analysis
+            showPerformanceAnalysis();
+
+            // Save results
+            if (currentUser) {
+                saveScenarioResults();
+            }
+        }
+
+        function showPerformanceAnalysis() {
+            const maxScore = currentScenario.situations.reduce((total, situation) => {
+                return total + Math.max(...situation.choices.map(choice => choice.points));
+            }, 0);
+
+            const percentage = Math.round((score / maxScore) * 100);
+            let performance = 'Good job!';
+            let performanceClass = 'text-success';
+
+            if (percentage >= 90) {
+                performance = 'Excellent! Outstanding decision-making skills.';
+                performanceClass = 'text-success';
+            } else if (percentage >= 75) {
+                performance = 'Great work! You made mostly good decisions.';
+                performanceClass = 'text-primary';
+            } else if (percentage >= 60) {
+                performance = 'Good effort! There\'s room for improvement.';
+                performanceClass = 'text-warning';
+            } else {
+                performance = 'Keep practicing! Consider retrying the scenario.';
+                performanceClass = 'text-danger';
+            }
+
+            const analysisContainer = document.getElementById('performanceAnalysis');
+            analysisContainer.innerHTML = `
+                <div class="alert alert-light border-0">
+                    <h4 class="${performanceClass}">${performance}</h4>
+                    <p class="mb-0">You scored ${score} out of ${maxScore} possible points (${percentage}%).</p>
+                </div>
+                
+                <h5 class="mt-4 mb-3">Situation Breakdown:</h5>
+                ${currentScenario.situations.map((situation, index) => `
+                    <div class="card border-0 bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="fw-bold">${situation.title}</h6>
+                            <p class="mb-2">${choices[index] ? choices[index].feedback : 'No choice made'}</p>
+                            <div class="d-flex justify-content-between">
+                                <span>Points earned: ${choices[index] ? choices[index].points : 0}</span>
+                                <span>Max possible: ${Math.max(...situation.choices.map(c => c.points))}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        async function saveScenarioResults() {
+            try {
+                const scenarioType = Object.keys(scenarios).find(key => scenarios[key] === currentScenario);
+
+                await supabase
+                    .from('user_activities')
+                    .insert([
+                        {
+                            user_id: currentUser.id,
+                            activity_type: 'scenario_completed',
+                            activity_data: {
+                                pathway: scenarioType,
+                                score: score,
+                                choices: choices,
+                                completion_time: Math.round((new Date() - startTime) / 1000)
+                            },
+                            timestamp: new Date().toISOString()
+                        }
+                    ]);
+            } catch (error) {
+                console.error('Error saving scenario results:', error);
+            }
+        }
+
+        function exitScenario() {
+            if (confirm('Are you sure you want to exit? Your progress will be lost.')) {
+                backToScenarios();
+            }
+        }
+
+        function retryScenario() {
+            startScenario(Object.keys(scenarios).find(key => scenarios[key] === currentScenario));
+        }
+
+        function backToScenarios() {
+            document.getElementById('scenarioGame').classList.add('d-none');
+            document.getElementById('scenarioResults').classList.add('d-none');
+            document.getElementById('scenarioSelection').classList.remove('d-none');
+
+            // Reload progress
+            loadScenarioProgress();
+        }
+
+        function changeLanguage() {
+            const select = document.getElementById('languageSelect');
+            const currentLanguage = select.value;
+
+            document.querySelectorAll('[data-en]').forEach(element => {
+                if (currentLanguage === 'en') {
+                    element.textContent = element.getAttribute('data-en');
+                } else {
+                    element.textContent = element.getAttribute('data-sw');
+                }
+            });
+        }
+
+        // Show auth section after page load
+        document.getElementById('authSection').classList.remove('d-none');
+    </script>
+
+</body>
+
+</html>
