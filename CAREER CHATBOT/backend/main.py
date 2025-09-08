@@ -11,7 +11,7 @@ print("👉 Running THIS main.py:", __file__)
 # ✅ Load environment variables
 load_dotenv()
 
-api_key = os.getenv("GEMINI_API_KEY")  # must exist in .env file
+api_key = os.getenv("AIzaSyDDyRSRBIEC-OZYoiw9dNPwdWd9p8PMBLw")  # must exist in .env file
 if not api_key:
     raise RuntimeError("❌ GEMINI_API_KEY not set in .env file!")
 
