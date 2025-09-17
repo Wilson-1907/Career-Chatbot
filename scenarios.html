@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Scenarios - CBE Career Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #5D5CDE;
+            --secondary: #FF6B35;
+            --accent: #4ECDC4;
+            --success: #45B7D1;
+            --kenya-black: #000000;
+            --kenya-red: #CE1126;
+            --kenya-green: #006B3F;
+            --kenya-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e6efff 50%, #f0f8ff 100%);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .gradient-kenya {
+            background: linear-gradient(135deg, var(--kenya-green) 0%, var(--kenya-red) 50%, var(--kenya-black) 100%);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            opacity: 0.9;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .scenario-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .scenario-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .choice-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .choice-option.selected {
+            border-color: var(--primary) !important;
+            background-color: rgba(93, 92, 222, 0.1) !important;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+        }
+
+        .footer {
+            background-color: #212529;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top border-bottom">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <div class="gradient-kenya rounded-3 me-3 p-2 shadow">
+                    <i class="fas fa-graduation-cap text-white fs-5"></i>
+                </div>
+                <div>
+                    <span class="fw-bold fs-4 text-primary">CBE Career Guide</span>
+                    <div class="small text-muted d-none d-sm-block">🇰🇪 Ministry of Education Kenya</div>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="chat.html">
+                            <i class="fas fa-comments me-2"></i>AI Chat
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="assessment.html">
+                            <i class="fas fa-clipboard-list me-2"></i>Assessment
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pathways.html">
+                            <i class="fas fa-route me-2"></i>Pathways
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="careers.html">
+                            <i class="fas fa-briefcase me-2"></i>Careers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="scenarios.html">
+                            <i class="fas fa-gamepad me-2"></i>Scenarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="resources.html">
+                            <i class="fas fa-book me-2"></i>Resources
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center">
+                    <select id="languageSelect" onchange="changeLanguage()" class="form-select form-select-sm me-3"
+                        style="width: auto;">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="sw">🇰🇪 Kiswahili</option>
+                    </select>
+
+                    <div id="authSection" class="d-none">
+                        <div id="notLoggedIn" class="d-flex gap-2">
+                            <a href="login.html" class="btn btn-outline-primary btn-sm">Login</a>
+                            <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
+                        </div>
+
+                        <div id="loggedIn" class="d-none">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="fas fa-user me-1"></i>
+                                    <span id="userName">Student</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="profile.html">Profile</a></li>
+                                    <li><a class="dropdown-item" href="history.html">History</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="signOut()">Sign Out</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container py-4">
+
+        <!-- Scenario Selection Screen -->
+        <div id="scenarioSelection">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold mb-4">
+                    <span data-en="Career Scenarios" data-sw="Hali za Kazi">Career Scenarios</span>
+                </h1>
+                <p class="lead text-muted col-lg-8 mx-auto">
+                    <span
+                        data-en="Experience real-world career situations through interactive scenarios. Make decisions and see how they impact your career journey."
+                        data-sw="Pata uzoefu wa hali za ukweli za kazi kupitia hali za mwingiliano. Fanya maamuzi na uone jinsi yanavyoathiri safari yako ya kazi.">
+                        Experience real-world career situations through interactive scenarios. Make decisions and see
+                        how they impact your career journey.
+                    </span>
+                </p>
+            </div>
+
+            <!-- Scenario Categories -->
+            <div class="row g-4 mb-5">
+
+                <!-- STEM Scenario -->
+                <div class="col-lg-6">
+                    <div class="card scenario-hero h-100 p-4"
+                        style="background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);">
+                        <div class="position-relative">
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3 me-4">
+                                        <i class="fas fa-flask fs-1"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1">
+                                            <span data-en="STEM Challenge" data-sw="Changamoto ya STEM">STEM
+                                                Challenge</span>
+                                        </h2>
+                                        <p class="mb-0 opacity-75">
+                                            <span data-en="Software Development Project"
+                                                data-sw="Mradi wa Ukuzaji wa Programu">Software Development
+                                                Project</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mb-4 opacity-90">
+                                    <span
+                                        data-en="You're a junior software developer tasked with creating a mobile app. Navigate through real challenges and make decisions that affect your project's success."
+                                        data-sw="Wewe ni msanidi programu mdogo uliyepangiwa kuunda programu ya simu. Pita changamoto za ukweli na fanya maamuzi yanayoathiri mafanikio ya mradi wako.">
+                                        You're a junior software developer tasked with creating a mobile app. Navigate
+                                        through real challenges and make decisions that affect your project's success.
+                                    </span>
+                                </p>
+
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 opacity-75"></i>
+                                            <small>15-20 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-users me-2 opacity-75"></i>
+                                            <small>Team-based</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-trophy me-2 opacity-75"></i>
+                                            <small>XP Rewards</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-brain me-2 opacity-75"></i>
+                                            <small>Problem Solving</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="startScenario('engineering')" class="btn btn-light btn-lg">
+                                    <i class="fas fa-play me-2"></i>
+                                    <span data-en="Start Challenge" data-sw="Anza Changamoto">Start Challenge</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Sciences Scenario -->
+                <div class="col-lg-6">
+                    <div class="card scenario-hero h-100 p-4"
+                        style="background: linear-gradient(135deg, #10B981 0%, #14B8A6 100%);">
+                        <div class="position-relative">
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3 me-4">
+                                        <i class="fas fa-users fs-1"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1">
+                                            <span data-en="Leadership Challenge"
+                                                data-sw="Changamoto ya Uongozi">Leadership Challenge</span>
+                                        </h2>
+                                        <p class="mb-0 opacity-75">
+                                            <span data-en="Community Project Management"
+                                                data-sw="Usimamizi wa Mradi wa Jamii">Community Project
+                                                Management</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mb-4 opacity-90">
+                                    <span
+                                        data-en="Lead a community development project as a social worker. Handle stakeholder conflicts, budget constraints, and timeline pressures."
+                                        data-sw="Ongoza mradi wa maendeleo ya jamii kama mfanyakazi wa kijamii. Shughulikia migogoro ya wadau, vikwazo vya bajeti, na shinikizo la muda.">
+                                        Lead a community development project as a social worker. Handle stakeholder
+                                        conflicts, budget constraints, and timeline pressures.
+                                    </span>
+                                </p>
+
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 opacity-75"></i>
+                                            <small>20-25 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-handshake me-2 opacity-75"></i>
+                                            <small>Negotiation</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-trophy me-2 opacity-75"></i>
+                                            <small>Leadership XP</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-heart me-2 opacity-75"></i>
+                                            <small>Empathy Skills</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="startScenario('healthcare')" class="btn btn-light btn-lg">
+                                    <i class="fas fa-play me-2"></i>
+                                    <span data-en="Start Challenge" data-sw="Anza Changamoto">Start Challenge</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arts & Sports Scenario -->
+                <div class="col-lg-6">
+                    <div class="card scenario-hero h-100 p-4"
+                        style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);">
+                        <div class="position-relative">
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3 me-4">
+                                        <i class="fas fa-palette fs-1"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1">
+                                            <span data-en="Creative Challenge" data-sw="Changamoto ya Ubunifu">Creative
+                                                Challenge</span>
+                                        </h2>
+                                        <p class="mb-0 opacity-75">
+                                            <span data-en="Brand Design Campaign"
+                                                data-sw="Kampeni ya Muundo wa Chapa">Brand Design Campaign</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mb-4 opacity-90">
+                                    <span
+                                        data-en="Create a complete brand identity for a new Kenyan startup. Balance creativity with client requirements and market demands."
+                                        data-sw="Unda utambulisho kamili wa chapa kwa kampuni mpya ya Kenya. Sawazisha ubunifu na mahitaji ya mteja na mahitaji ya soko.">
+                                        Create a complete brand identity for a new Kenyan startup. Balance creativity
+                                        with client requirements and market demands.
+                                    </span>
+                                </p>
+
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 opacity-75"></i>
+                                            <small>18-22 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-palette me-2 opacity-75"></i>
+                                            <small>Creative Process</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-trophy me-2 opacity-75"></i>
+                                            <small>Art XP</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-lightbulb me-2 opacity-75"></i>
+                                            <small>Innovation</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="startScenario('arts')" class="btn btn-light btn-lg">
+                                    <i class="fas fa-play me-2"></i>
+                                    <span data-en="Start Challenge" data-sw="Anza Changamoto">Start Challenge</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical & Vocational Scenario -->
+                <div class="col-lg-6">
+                    <div class="card scenario-hero h-100 p-4"
+                        style="background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);">
+                        <div class="position-relative">
+                            <div class="position-relative">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-white bg-opacity-20 rounded-3 p-3 me-4">
+                                        <i class="fas fa-tools fs-1"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1">
+                                            <span data-en="Technical Challenge"
+                                                data-sw="Changamoto ya Kiufundi">Technical Challenge</span>
+                                        </h2>
+                                        <p class="mb-0 opacity-75">
+                                            <span data-en="Construction Site Management"
+                                                data-sw="Usimamizi wa Uwanda wa Ujenzi">Construction Site
+                                                Management</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <p class="mb-4 opacity-90">
+                                    <span
+                                        data-en="Manage a construction project as a site supervisor. Handle safety protocols, resource allocation, and quality control."
+                                        data-sw="Simamia mradi wa ujenzi kama msimamizi wa uwanda. Shughulikia taratibu za usalama, ugawaji wa rasilimali, na udhibiti wa ubora.">
+                                        Manage a construction project as a site supervisor. Handle safety protocols,
+                                        resource allocation, and quality control.
+                                    </span>
+                                </p>
+
+                                <div class="row g-2 mb-4">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 opacity-75"></i>
+                                            <small>16-20 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-hard-hat me-2 opacity-75"></i>
+                                            <small>Safety Focus</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-trophy me-2 opacity-75"></i>
+                                            <small>Technical XP</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-cogs me-2 opacity-75"></i>
+                                            <small>Problem Solving</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onclick="startScenario('business')" class="btn btn-light btn-lg">
+                                    <i class="fas fa-play me-2"></i>
+                                    <span data-en="Start Challenge" data-sw="Anza Changamoto">Start Challenge</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous Scenarios -->
+            <div class="card scenario-card rounded-4 p-4 p-md-5 mb-5">
+                <h2 class="fw-bold mb-4">
+                    <span data-en="Your Scenario Progress" data-sw="Maendeleo Yako ya Hali">Your Scenario
+                        Progress</span>
+                </h2>
+
+                <div class="row g-4" id="scenarioProgress">
+                    <!-- Progress will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Scenario Game Screen -->
+        <div id="scenarioGame" class="d-none">
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+
+                    <!-- Game Header -->
+                    <div class="card scenario-card rounded-4 p-4 mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h2 class="fw-bold mb-2" id="scenarioTitle">Scenario Title</h2>
+                                <p class="text-muted mb-0" id="scenarioSubtitle">Scenario Description</p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="d-flex align-items-center justify-content-md-end gap-3">
+                                    <div class="text-center">
+                                        <div class="progress-ring">
+                                            <svg class="w-100 h-100" viewBox="0 0 36 36">
+                                                <path class="text-muted" fill="none" stroke="currentColor"
+                                                    stroke-width="3" d="M18 2.0845
+                                                         a 15.9155 15.9155 0 0 1 0 31.831
+                                                         a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                <path id="progressPath" class="text-primary" fill="none"
+                                                    stroke="currentColor" stroke-width="3" stroke-dasharray="30, 100" d="M18 2.0845
+                                                         a 15.9155 15.9155 0 0 1 0 31.831
+                                                         a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                            </svg>
+                                        </div>
+                                        <small class="text-muted">Progress</small>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="h4 mb-0 text-warning" id="scoreDisplay">0</div>
+                                        <small class="text-muted">Score</small>
+                                    </div>
+                                    <button onclick="exitScenario()" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-times me-1"></i>Exit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Game Content -->
+                    <div class="card scenario-card rounded-4 p-4 p-md-5">
+
+                        <!-- Situation Description -->
+                        <div class="mb-5">
+                            <h3 class="fw-bold mb-3" id="situationTitle">Situation</h3>
+                            <div class="bg-light rounded-3 p-4">
+                                <p class="mb-0" id="situationDescription">
+                                    Situation description will appear here...
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Choices -->
+                        <div class="mb-5">
+                            <h4 class="fw-bold mb-4">
+                                <span data-en="What would you do?" data-sw="Ungefanya nini?">What would you do?</span>
+                            </h4>
+                            <div id="choicesContainer" class="row g-3">
+                                <!-- Choices will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button onclick="previousSituation()" id="prevBtn" class="btn btn-outline-secondary"
+                                disabled>
+                                <i class="fas fa-arrow-left me-2"></i>
+                                <span data-en="Previous" data-sw="Iliyotangulia">Previous</span>
+                            </button>
+                            <button onclick="nextSituation()" id="nextBtn" class="btn btn-primary" disabled>
+                                <span data-en="Continue" data-sw="Endelea">Continue</span>
+                                <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scenario Results Screen -->
+        <div id="scenarioResults" class="d-none">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+
+                    <!-- Results Header -->
+                    <div class="card scenario-card rounded-4 p-4 p-md-5 mb-4 text-center">
+                        <div class="gradient-bg rounded-4 d-inline-flex align-items-center justify-content-center mb-4"
+                            style="width: 96px; height: 96px;">
+                            <i class="fas fa-trophy text-white fs-1"></i>
+                        </div>
+                        <h1 class="display-5 fw-bold mb-3">
+                            <span data-en="Scenario Complete!" data-sw="Hali Imekamilika!">Scenario Complete!</span>
+                        </h1>
+                        <p class="lead text-muted mb-4" id="resultsDescription">
+                            Great job completing the scenario! Here's how you performed.
+                        </p>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <h3 class="text-primary mb-1" id="finalScore">85</h3>
+                                <p class="text-muted mb-0">Final Score</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 class="text-success mb-1" id="xpEarned">+50</h3>
+                                <p class="text-muted mb-0">XP Earned</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 class="text-warning mb-1" id="timeCompleted">12:34</h3>
+                                <p class="text-muted mb-0">Time</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Analysis -->
+                    <div class="card scenario-card rounded-4 p-4 p-md-5 mb-4">
+                        <h2 class="fw-bold mb-4">
+                            <span data-en="Performance Analysis" data-sw="Uchambuzi wa Utendaji">Performance
+                                Analysis</span>
+                        </h2>
+                        <div id="performanceAnalysis">
+                            <!-- Analysis will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center">
+                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                            <button onclick="retryScenario()" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-redo me-2"></i>
+                                <span data-en="Try Again" data-sw="Jaribu Tena">Try Again</span>
+                            </button>
+                            <button onclick="backToScenarios()" class="btn btn-primary btn-lg">
+                                <i class="fas fa-list me-2"></i>
+                                <span data-en="Choose Another Scenario" data-sw="Chagua Hali Nyingine">Choose Another
+                                    Scenario</span>
+                            </button>
+                            <a href="assessment.html" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                <span data-en="Take Assessment" data-sw="Chukua Tathmini">Take Assessment</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <p class="mb-0 small text-light-emphasis">
+                        © 2025 CBE Career Guide. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 small fw-medium">
+                        Developed by <span class="text-info fw-bold">Code Champ</span> 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://vxoiunxiaxhxhpbajjgl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4b2l1bnhpYXhoeGhwYmFqamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNTIzMjQsImV4cCI6MjA3MjgyODMyNH0.wR7ANQfYOKaQg1sh6067TX9u9p5dtwoM8FsfmiwztPk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let currentScenario = null;
+        let currentSituation = 0;
+        let score = 0;
+        let choices = [];
+        let startTime = null;
+        let currentScenarioType = null;
+
+        // Updated scenario data with proper IDs that match the database
+        const scenarios = {
+            engineering: {
+                title: 'Engineering Challenge',
+                subtitle: 'Software Development Project',
+                situations: [
+                    {
+                        title: 'Project Planning',
+                        description: 'Your team has been assigned to develop a mobile app for a local business. The client wants a delivery tracking app, but the timeline is tight - only 6 weeks. Your project manager asks for your input on the approach.',
+                        choices: [
+                            { text: 'Suggest using a proven framework to speed up development', points: 20, feedback: 'Good choice! Using established frameworks reduces development time and bugs.' },
+                            { text: 'Recommend building everything from scratch for customization', points: 5, feedback: 'While customization is good, this approach might not meet the tight deadline.' },
+                            { text: 'Propose reducing features to meet the deadline', points: 15, feedback: 'Practical approach, but make sure core functionality isn\'t compromised.' },
+                            { text: 'Ask for timeline extension to ensure quality', points: 10, feedback: 'Quality is important, but flexibility with deadlines shows good project management.' }
+                        ]
+                    },
+                    {
+                        title: 'Technical Challenge',
+                        description: 'During development, you encounter a bug that affects the app\'s core functionality. The bug is complex and might take days to fix properly. The deadline is approaching fast.',
+                        choices: [
+                            { text: 'Work overtime to fix the bug properly', points: 25, feedback: 'Excellent! Quality should never be compromised, even under pressure.' },
+                            { text: 'Implement a quick workaround', points: 10, feedback: 'While this saves time, technical debt might cause bigger problems later.' },
+                            { text: 'Ask a senior developer for help', points: 20, feedback: 'Smart move! Collaboration and seeking help shows maturity.' },
+                            { text: 'Hide the bug and hope it\'s not noticed', points: 0, feedback: 'Never hide problems! This could damage your reputation and the project.' }
+                        ]
+                    },
+                    {
+                        title: 'Client Presentation',
+                        description: 'It\'s time to present your app to the client. During the demo, they request a major feature change that would require significant additional work. How do you respond?',
+                        choices: [
+                            { text: 'Agree immediately to please the client', points: 5, feedback: 'While pleasing clients is good, unrealistic promises can backfire.' },
+                            { text: 'Explain the impact and propose alternatives', points: 25, feedback: 'Perfect! Clear communication about constraints while offering solutions.' },
+                            { text: 'Refuse the change completely', points: 10, feedback: 'Too rigid. Flexibility and compromise are important in client relationships.' },
+                            { text: 'Promise to add it for free after launch', points: 15, feedback: 'Shows goodwill, but make sure the scope is clearly defined.' }
+                        ]
+                    },
+                    {
+                        title: 'Quality Assurance',
+                        description: 'Your app is ready for testing, but the QA team finds several minor bugs. The client wants to launch tomorrow. What do you prioritize?',
+                        choices: [
+                            { text: 'Fix all bugs regardless of the timeline', points: 25, feedback: 'Excellent! Quality should never be compromised for arbitrary deadlines.' },
+                            { text: 'Launch with bugs and fix them later', points: 5, feedback: 'This could damage user experience and your reputation.' },
+                            { text: 'Fix critical bugs only and document the rest', points: 20, feedback: 'Good prioritization! Critical issues first, with transparency about remaining items.' },
+                            { text: 'Ask the client to decide which bugs to fix', points: 15, feedback: 'Involving the client is good, but you should provide professional guidance.' }
+                        ]
+                    },
+                    {
+                        title: 'Project Retrospective',
+                        description: 'The project is complete and successful. During the team retrospective, what do you focus on for future improvement?',
+                        choices: [
+                            { text: 'Celebrate success and move on quickly', points: 5, feedback: 'Celebration is important, but learning from experience is crucial for growth.' },
+                            { text: 'Analyze what went well and what could be improved', points: 25, feedback: 'Perfect! Continuous improvement through honest reflection leads to better future projects.' },
+                            { text: 'Focus only on the problems that occurred', points: 10, feedback: 'Learning from mistakes is important, but also recognize what worked well.' },
+                            { text: 'Blame external factors for any issues', points: 0, feedback: 'Taking responsibility and focusing on what you can control leads to better outcomes.' }
+                        ]
+                    }
+                ]
+            },
+            healthcare: {
+                title: 'Healthcare Challenge',
+                subtitle: 'Community Health Initiative',
+                situations: [
+                    {
+                        title: 'Stakeholder Meeting',
+                        description: 'You\'re leading a community health outreach program. During a stakeholder meeting, two groups have conflicting priorities: one wants immediate vaccination drives, another wants a comprehensive health education system.',
+                        choices: [
+                            { text: 'Side with the group that has more influence', points: 5, feedback: 'Politics shouldn\'t drive health decisions. Focus on community needs and evidence.' },
+                            { text: 'Facilitate a discussion to find common ground', points: 25, feedback: 'Excellent leadership! Bringing people together creates better health solutions.' },
+                            { text: 'Make the decision yourself based on medical expertise', points: 15, feedback: 'Your expertise matters, but community buy-in is crucial for health program success.' },
+                            { text: 'Postpone the decision to avoid conflict', points: 10, feedback: 'Sometimes delay is needed, but health needs are urgent and require timely decisions.' }
+                        ]
+                    },
+                    {
+                        title: 'Resource Allocation',
+                        description: 'Your health program has limited funding. You must choose between providing free medication for 100 patients or health education for 500 families.',
+                        choices: [
+                            { text: 'Choose medication for immediate impact', points: 15, feedback: 'Immediate care is important, but consider long-term prevention benefits.' },
+                            { text: 'Choose education for long-term prevention', points: 20, feedback: 'Good thinking! Prevention can have broader, lasting impact on community health.' },
+                            { text: 'Try to find a compromise solution', points: 25, feedback: 'Excellent! Creative solutions that address both immediate and long-term needs.' },
+                            { text: 'Ask the community to vote on the decision', points: 18, feedback: 'Community input is valuable, but provide professional guidance on health implications.' }
+                        ]
+                    },
+                    {
+                        title: 'Cultural Sensitivity',
+                        description: 'Some community members resist modern medical practices due to traditional beliefs. They prefer traditional healers and are skeptical of your program.',
+                        choices: [
+                            { text: 'Ignore their beliefs and push modern medicine', points: 5, feedback: 'Dismissing cultural beliefs creates resistance and reduces program effectiveness.' },
+                            { text: 'Work with traditional healers to bridge approaches', points: 25, feedback: 'Perfect! Collaborative approaches respect culture while improving health outcomes.' },
+                            { text: 'Focus only on those who accept modern medicine', points: 10, feedback: 'This leaves vulnerable populations without care. Inclusive approaches work better.' },
+                            { text: 'Provide scientific evidence to change their minds', points: 15, feedback: 'Education is important, but must be delivered respectfully and culturally appropriately.' }
+                        ]
+                    },
+                    {
+                        title: 'Emergency Response',
+                        description: 'A cholera outbreak occurs in a nearby area. Your program resources could help, but it would mean stopping your current vaccination campaign.',
+                        choices: [
+                            { text: 'Continue with the vaccination campaign as planned', points: 5, feedback: 'While consistency is important, emergency health situations require flexibility.' },
+                            { text: 'Immediately redirect all resources to cholera response', points: 20, feedback: 'Good emergency response! Acute health crises take priority over routine programs.' },
+                            { text: 'Split resources between both programs', points: 15, feedback: 'Balanced approach, but ensure both programs remain effective with reduced resources.' },
+                            { text: 'Seek additional emergency funding first', points: 25, feedback: 'Excellent! Proactive resource mobilization allows comprehensive response without compromising ongoing programs.' }
+                        ]
+                    },
+                    {
+                        title: 'Program Evaluation',
+                        description: 'After six months, your program shows mixed results. Vaccination rates improved but health education attendance is low. How do you respond?',
+                        choices: [
+                            { text: 'Focus resources on the successful vaccination component', points: 15, feedback: 'Building on success is good, but address the education challenges too.' },
+                            { text: 'Investigate why education attendance is low', points: 25, feedback: 'Excellent! Understanding barriers is essential for program improvement.' },
+                            { text: 'Replace education with more vaccination drives', points: 10, feedback: 'Both components are important. Find ways to improve rather than abandon.' },
+                            { text: 'Continue both programs without changes', points: 5, feedback: 'Persistence is good, but programs should adapt based on evidence and results.' }
+                        ]
+                    }
+                ]
+            },
+            business: {
+                title: 'Business Challenge',
+                subtitle: 'Entrepreneurship Project',
+                situations: [
+                    {
+                        title: 'Business Planning',
+                        description: 'You\'re starting a tech company in Kenya. You have a great idea for a mobile payment app, but limited funds. What\'s your first priority?',
+                        choices: [
+                            { text: 'Build a minimum viable product (MVP) first', points: 25, feedback: 'Excellent! MVP approach validates your idea with minimal investment.' },
+                            { text: 'Seek major investment before building anything', points: 10, feedback: 'While funding is important, prove your concept first to attract better investors.' },
+                            { text: 'Build a complete product with all features', points: 5, feedback: 'This requires significant resources and delays market feedback.' },
+                            { text: 'Study the competition extensively first', points: 15, feedback: 'Market research is valuable, but balance it with action and testing.' }
+                        ]
+                    },
+                    {
+                        title: 'Team Building',
+                        description: 'Your startup is growing and you need to hire your first employees. You have three candidates: a skilled developer wanting high salary, a passionate junior for lower pay, and an experienced manager requiring equity.',
+                        choices: [
+                            { text: 'Hire the skilled developer despite the cost', points: 15, feedback: 'Skills are important, but consider if the cost fits your current budget and runway.' },
+                            { text: 'Choose the passionate junior and train them', points: 20, feedback: 'Good choice! Passion and cultural fit often outweigh immediate skills.' },
+                            { text: 'Hire the experienced manager for equity', points: 18, feedback: 'Experience is valuable, but ensure equity arrangements align with long-term goals.' },
+                            { text: 'Try to negotiate better terms with all three', points: 25, feedback: 'Excellent! Negotiation skills and creative compensation can help you get the best talent.' }
+                        ]
+                    },
+                    {
+                        title: 'Customer Feedback',
+                        description: 'After launching your MVP, customers love the core feature but request many additional features. Your small team is overwhelmed. What do you do?',
+                        choices: [
+                            { text: 'Try to build all requested features quickly', points: 5, feedback: 'This can lead to burnout and reduced quality. Focus is important in early stages.' },
+                            { text: 'Prioritize features based on user data and impact', points: 25, feedback: 'Perfect! Data-driven prioritization ensures you build what matters most.' },
+                            { text: 'Focus only on the most requested feature', points: 20, feedback: 'Good approach, but consider strategic value and business impact, not just popularity.' },
+                            { text: 'Ignore feature requests and focus on marketing', points: 10, feedback: 'Customer feedback is valuable for product-market fit. Balance development with marketing.' }
+                        ]
+                    },
+                    {
+                        title: 'Funding Challenge',
+                        description: 'Your startup needs more funding to scale. You have options: a bank loan with high interest, an angel investor wanting 30% equity, or a government grant with strict requirements.',
+                        choices: [
+                            { text: 'Take the bank loan for full control', points: 15, feedback: 'Maintaining control is valuable, but ensure the interest payments are manageable.' },
+                            { text: 'Accept the angel investor\'s offer', points: 20, feedback: 'Angel investors bring money and expertise, but evaluate if 30% is fair for the stage.' },
+                            { text: 'Apply for the government grant', points: 18, feedback: 'Grants are non-dilutive, but ensure compliance requirements don\'t limit your flexibility.' },
+                            { text: 'Bootstrap and grow more slowly', points: 25, feedback: 'Excellent! Sustainable growth without external pressure can lead to better long-term outcomes.' }
+                        ]
+                    },
+                    {
+                        title: 'Market Competition',
+                        description: 'A large multinational company launches a similar product with more features and lower prices. Your customers are switching. How do you respond?',
+                        choices: [
+                            { text: 'Lower your prices to match theirs', points: 10, feedback: 'Price wars often hurt smaller companies more. Consider differentiation instead.' },
+                            { text: 'Focus on superior customer service and local understanding', points: 25, feedback: 'Excellent! Leverage your local advantage and personal touch that big companies can\'t match.' },
+                            { text: 'Add more features to compete directly', points: 15, feedback: 'Feature competition is expensive. Consider if your resources are better used elsewhere.' },
+                            { text: 'Pivot to a different market or product', points: 20, feedback: 'Sometimes pivoting is smart, but first try to leverage your existing strengths.' }
+                        ]
+                    }
+                ]
+            },
+            teaching: {
+                title: 'Teaching Challenge',
+                subtitle: 'Educational Leadership Project',
+                situations: [
+                    {
+                        title: 'Curriculum Development',
+                        description: 'You\'re developing a new digital literacy curriculum for secondary schools. The Ministry wants traditional computer skills, but employers need modern digital skills like coding and data analysis.',
+                        choices: [
+                            { text: 'Follow Ministry requirements exactly', points: 10, feedback: 'Compliance is important, but consider how to meet requirements while serving students better.' },
+                            { text: 'Design a curriculum that balances both needs', points: 25, feedback: 'Excellent! Balancing official requirements with practical needs serves students best.' },
+                            { text: 'Focus only on employer-demanded skills', points: 15, feedback: 'Market relevance is important, but institutional support is needed for implementation.' },
+                            { text: 'Propose a pilot program to test new approaches', points: 20, feedback: 'Good strategy! Pilots can demonstrate value and build support for innovation.' }
+                        ]
+                    },
+                    {
+                        title: 'Student Engagement',
+                        description: 'Your students are struggling with mathematics. Some need basic arithmetic review, others are ready for advanced concepts. Class sizes are large and resources limited.',
+                        choices: [
+                            { text: 'Teach to the middle level and hope others catch up', points: 10, feedback: 'This approach leaves many students behind. Consider differentiated instruction.' },
+                            { text: 'Create different activity groups within the class', points: 25, feedback: 'Excellent! Differentiated instruction meets students where they are.' },
+                            { text: 'Focus on the struggling students first', points: 15, feedback: 'Supporting struggling students is important, but don\'t neglect others\' growth.' },
+                            { text: 'Use peer tutoring to leverage stronger students', points: 20, feedback: 'Good strategy! Peer learning benefits both tutors and those being helped.' }
+                        ]
+                    },
+                    {
+                        title: 'Technology Integration',
+                        description: 'Your school receives tablets for classroom use, but internet connectivity is unreliable and some teachers resist technology integration.',
+                        choices: [
+                            { text: 'Force all teachers to use tablets immediately', points: 5, feedback: 'Forced adoption often fails. Support and training are essential for successful integration.' },
+                            { text: 'Provide training and start with willing teachers', points: 25, feedback: 'Perfect! Change management works best with support, training, and early adopters.' },
+                            { text: 'Focus on offline tablet applications only', points: 15, feedback: 'Practical approach given connectivity issues, but don\'t limit long-term potential.' },
+                            { text: 'Return the tablets until infrastructure improves', points: 10, feedback: 'While practical, this misses opportunities for offline digital learning.' }
+                        ]
+                    },
+                    {
+                        title: 'Parent Engagement',
+                        description: 'Many parents in your community have limited education and feel intimidated about supporting their children\'s learning. How do you engage them?',
+                        choices: [
+                            { text: 'Send written materials home for parents to review', points: 10, feedback: 'Written materials may not work for parents with limited literacy. Consider alternatives.' },
+                            { text: 'Host community meetings in familiar, comfortable settings', points: 25, feedback: 'Excellent! Meeting parents where they are comfortable builds trust and engagement.' },
+                            { text: 'Focus on educating the students only', points: 5, feedback: 'Parent support significantly impacts student success. Don\'t give up on engagement.' },
+                            { text: 'Train older students to teach their families', points: 20, feedback: 'Creative approach! Student ambassadors can bridge the gap between school and home.' }
+                        ]
+                    },
+                    {
+                        title: 'Assessment Innovation',
+                        description: 'National exams focus on memorization, but you believe students need critical thinking skills. How do you prepare students for both?',
+                        choices: [
+                            { text: 'Focus only on exam preparation for better scores', points: 10, feedback: 'Good scores are important, but don\'t sacrifice critical thinking development.' },
+                            { text: 'Integrate critical thinking into exam preparation', points: 25, feedback: 'Excellent! Show students how critical thinking actually improves exam performance.' },
+                            { text: 'Ignore national exams and focus on skills', points: 5, feedback: 'Exams affect student futures. Find ways to develop skills while achieving exam success.' },
+                            { text: 'Alternate between exam prep and skills development', points: 20, feedback: 'Balanced approach, but integration is more effective than alternation.' }
+                        ]
+                    }
+                ]
+            },
+            agriculture: {
+                title: 'Agriculture Challenge',
+                subtitle: 'Sustainable Farming Project',
+                situations: [
+                    {
+                        title: 'Crop Selection',
+                        description: 'You\'re advising small-scale farmers on crop diversification. Climate change is affecting traditional crops, but farmers are hesitant to try new varieties.',
+                        choices: [
+                            { text: 'Recommend drought-resistant varieties immediately', points: 15, feedback: 'Good thinking on climate adaptation, but farmer buy-in is crucial for adoption.' },
+                            { text: 'Start demonstration plots with willing farmers', points: 25, feedback: 'Excellent! Demonstration plots provide evidence and reduce perceived risk.' },
+                            { text: 'Focus on improving traditional crop yields first', points: 20, feedback: 'Building on existing knowledge is good, but also prepare for climate changes.' },
+                            { text: 'Wait for government programs to promote new crops', points: 5, feedback: 'Waiting may miss opportunities. Take initiative while seeking institutional support.' }
+                        ]
+                    },
+                    {
+                        title: 'Water Management',
+                        description: 'The region faces irregular rainfall. Farmers need irrigation solutions, but costs are high and water sources are disputed by different communities.',
+                        choices: [
+                            { text: 'Focus on individual farm irrigation systems', points: 15, feedback: 'Individual solutions work but may be expensive and miss community cooperation benefits.' },
+                            { text: 'Facilitate community discussions on shared water resources', points: 25, feedback: 'Perfect! Community-based water management is sustainable and equitable.' },
+                            { text: 'Advocate for government irrigation projects', points: 20, feedback: 'Government support is valuable, but also build local capacity and ownership.' },
+                            { text: 'Promote rainwater harvesting techniques', points: 22, feedback: 'Excellent approach! Rainwater harvesting reduces dependence on disputed sources.' }
+                        ]
+                    },
+                    {
+                        title: 'Market Access',
+                        description: 'Farmers produce quality crops but struggle with market access. Middlemen take large profits while farmers receive low prices.',
+                        choices: [
+                            { text: 'Help farmers form cooperatives for collective bargaining', points: 25, feedback: 'Excellent! Cooperatives increase farmer bargaining power and reduce middleman exploitation.' },
+                            { text: 'Connect farmers directly with urban markets', points: 20, feedback: 'Good approach, but ensure farmers have capacity for direct marketing.' },
+                            { text: 'Negotiate better terms with existing middlemen', points: 15, feedback: 'This may help temporarily, but doesn\'t address structural market problems.' },
+                            { text: 'Focus on improving crop quality to command higher prices', points: 18, feedback: 'Quality improvement is important, but market access issues also need addressing.' }
+                        ]
+                    },
+                    {
+                        title: 'Pest Management',
+                        description: 'A new pest is attacking crops across the region. Chemical pesticides are effective but expensive and environmentally harmful. Organic methods take time to establish.',
+                        choices: [
+                            { text: 'Recommend immediate chemical treatment to save crops', points: 15, feedback: 'Immediate action is sometimes necessary, but consider long-term environmental costs.' },
+                            { text: 'Promote integrated pest management combining methods', points: 25, feedback: 'Excellent! IPM balances immediate needs with long-term sustainability.' },
+                            { text: 'Focus only on organic and biological control methods', points: 20, feedback: 'Sustainable approach, but ensure farmers don\'t lose entire crops while methods establish.' },
+                            { text: 'Train farmers in pest identification and early intervention', points: 22, feedback: 'Great prevention strategy! Early intervention is often more effective and less costly.' }
+                        ]
+                    },
+                    {
+                        title: 'Technology Adoption',
+                        description: 'Mobile apps can help farmers access weather information, market prices, and agricultural advice. However, many farmers have basic phones and limited digital literacy.',
+                        choices: [
+                            { text: 'Focus on farmers who already have smartphones', points: 10, feedback: 'This creates digital divides. Consider inclusive approaches for all farmers.' },
+                            { text: 'Develop SMS-based information systems', points: 25, feedback: 'Excellent! SMS works on basic phones and can reach the most farmers.' },
+                            { text: 'Set up community information centers', points: 20, feedback: 'Good approach for shared access, but also build individual capacity.' },
+                            { text: 'Train young farmers to be tech ambassadors', points: 22, feedback: 'Smart strategy! Young people can bridge the technology gap for older farmers.' }
+                        ]
+                    }
+                ]
+            },
+            arts: {
+                title: 'Arts Challenge',
+                subtitle: 'Creative Industry Project',
+                situations: [
+                    {
+                        title: 'Creative Brief',
+                        description: 'A Kenyan eco-tourism startup wants a brand identity that appeals to international tourists while respecting local culture. They want something "modern but authentic."',
+                        choices: [
+                            { text: 'Research extensively before sketching any ideas', points: 25, feedback: 'Excellent! Understanding the culture and market is crucial for authentic design.' },
+                            { text: 'Start with trendy international design styles', points: 10, feedback: 'Trends are useful, but authentic local connection should come first.' },
+                            { text: 'Copy successful tourism brands from other countries', points: 0, feedback: 'Copying lacks originality and won\'t reflect Kenya\'s unique identity.' },
+                            { text: 'Focus on traditional Kenyan motifs only', points: 15, feedback: 'Cultural authenticity is important, but consider the international audience too.' }
+                        ]
+                    },
+                    {
+                        title: 'Client Feedback',
+                        description: 'The client loves your cultural elements but says the design is "too African" for international markets. They want something more "universal."',
+                        choices: [
+                            { text: 'Completely redesign removing all cultural elements', points: 5, feedback: 'This loses the authentic connection that makes the brand unique.' },
+                            { text: 'Educate the client on the value of authentic cultural branding', points: 25, feedback: 'Perfect! Help clients understand how authenticity creates stronger brand differentiation.' },
+                            { text: 'Refuse to change your design', points: 10, feedback: 'Standing by your vision is good, but collaboration is also important.' },
+                            { text: 'Create two versions - one for local, one for international use', points: 20, feedback: 'Practical solution, though it may dilute brand consistency.' }
+                        ]
+                    },
+                    {
+                        title: 'Creative Collaboration',
+                        description: 'You\'re working with a team of artists from different disciplines (musicians, visual artists, writers) on a cultural festival. Creative differences are causing conflicts.',
+                        choices: [
+                            { text: 'Let each artist work independently on separate components', points: 15, feedback: 'Independence reduces conflict but may result in disconnected experience.' },
+                            { text: 'Facilitate workshops to find common creative vision', points: 25, feedback: 'Excellent! Collaborative visioning creates stronger, unified artistic expression.' },
+                            { text: 'Impose a single artistic direction to avoid conflicts', points: 10, feedback: 'This may reduce creativity and artist buy-in. Facilitation works better than imposition.' },
+                            { text: 'Focus on the most commercially viable artistic approach', points: 18, feedback: 'Commercial viability is important, but don\'t sacrifice artistic integrity completely.' }
+                        ]
+                    },
+                    {
+                        title: 'Cultural Sensitivity',
+                        description: 'Your art project involves traditional cultural symbols. Some community elders are concerned about appropriate representation and commercialization of sacred elements.',
+                        choices: [
+                            { text: 'Proceed with your artistic vision regardless', points: 5, feedback: 'Ignoring cultural concerns can damage community relationships and authenticity.' },
+                            { text: 'Engage elders as advisors and collaborators', points: 25, feedback: 'Perfect! Respectful collaboration ensures authenticity and community support.' },
+                            { text: 'Remove all traditional elements to avoid controversy', points: 10, feedback: 'This avoids problems but may result in less meaningful, disconnected work.' },
+                            { text: 'Research cultural protocols and modify accordingly', points: 20, feedback: 'Good approach, but direct engagement with community is even better.' }
+                        ]
+                    },
+                    {
+                        title: 'Career Development',
+                        description: 'You have opportunities to work on a high-paying commercial project or a meaningful community arts project that pays little but serves an important social cause.',
+                        choices: [
+                            { text: 'Choose the high-paying commercial project', points: 15, feedback: 'Financial stability is important for career sustainability, but consider long-term fulfillment.' },
+                            { text: 'Choose the meaningful community project', points: 20, feedback: 'Purpose-driven work builds reputation and personal satisfaction, though financial planning is needed.' },
+                            { text: 'Try to negotiate combining elements of both', points: 25, feedback: 'Excellent! Creative solutions can achieve both financial and meaningful goals.' },
+                            { text: 'Take the commercial project and volunteer for community work', points: 22, feedback: 'Good balance! Ensure you can sustainably manage both commitments.' }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAuthState();
+            loadScenarioProgress();
+        });
+
+        async function checkAuthState() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                showLoggedInState();
+                await loadUserProfile();
+            } else {
+                showLoggedOutState();
+            }
+        }
+
+        async function loadUserProfile() {
+            try {
+                const { data: profile, error } = await supabase
+                    .from('user_profiles')
+                    .select('full_name')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                const name = profile?.full_name || currentUser.user_metadata?.full_name || 'Student';
+                document.getElementById('userName').textContent = name;
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        }
+
+        function showLoggedInState() {
+            document.getElementById('notLoggedIn').classList.add('d-none');
+            document.getElementById('loggedIn').classList.remove('d-none');
+        }
+
+        function showLoggedOutState() {
+            document.getElementById('notLoggedIn').classList.remove('d-none');
+            document.getElementById('loggedIn').classList.add('d-none');
+        }
+
+        async function signOut() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+
+                currentUser = null;
+                showLoggedOutState();
+
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        async function loadScenarioProgress() {
+            if (!currentUser) {
+                // Show default state for non-logged in users
+                showDefaultProgress();
+                return;
+            }
+
+            try {
+                // Load actual scenario progress from database
+                const { data, error } = await supabase
+                    .from('scenarios_progress')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                const progressData = await processScenarioProgress(data || []);
+                displayScenarioProgress(progressData);
+            } catch (error) {
+                console.error('Error loading scenario progress:', error);
+                showDefaultProgress();
+            }
+        }
+
+        async function processScenarioProgress(progressData) {
+            const scenarioTypes = ['engineering', 'healthcare', 'business', 'teaching', 'agriculture', 'arts'];
+            const displayNames = {
+                'engineering': 'Engineering',
+                'healthcare': 'Healthcare',
+                'business': 'Business',
+                'teaching': 'Teaching',
+                'agriculture': 'Agriculture',
+                'arts': 'Arts'
+            };
+
+            return scenarioTypes.map(scenarioId => {
+                const userProgress = progressData.filter(p => p.scenario_id === scenarioId);
+                const completed = userProgress.filter(p => p.completed).length;
+                const maxScore = userProgress.length > 0 ? Math.max(...userProgress.map(p => p.score || 0)) : 0;
+
+                return {
+                    id: scenarioId,
+                    pathway: displayNames[scenarioId],
+                    completed: completed,
+                    total: 1, // Each scenario type has one main scenario
+                    score: maxScore,
+                    attempts: userProgress.length
+                };
+            });
+        }
+
+        function showDefaultProgress() {
+            const defaultData = [
+                { id: 'engineering', pathway: 'Engineering', completed: 0, total: 1, score: 0, attempts: 0 },
+                { id: 'healthcare', pathway: 'Healthcare', completed: 0, total: 1, score: 0, attempts: 0 },
+                { id: 'business', pathway: 'Business', completed: 0, total: 1, score: 0, attempts: 0 },
+                { id: 'teaching', pathway: 'Teaching', completed: 0, total: 1, score: 0, attempts: 0 },
+                { id: 'agriculture', pathway: 'Agriculture', completed: 0, total: 1, score: 0, attempts: 0 },
+                { id: 'arts', pathway: 'Arts', completed: 0, total: 1, score: 0, attempts: 0 }
+            ];
+            displayScenarioProgress(defaultData);
+        }
+
+        function displayScenarioProgress(progressData) {
+            const container = document.getElementById('scenarioProgress');
+            container.innerHTML = progressData.map(item => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 bg-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary">${item.pathway}</h5>
+                            <div class="mb-3">
+                                <div class="h2 mb-1">${item.completed}/${item.total}</div>
+                                <small class="text-muted">Scenarios Completed</small>
+                            </div>
+                            ${item.score > 0 ? `
+                                <div class="mb-3">
+                                    <div class="h4 text-success mb-1">${item.score}/100</div>
+                                    <small class="text-muted">Best Score</small>
+                                </div>
+                            ` : '<div class="mb-3"><small class="text-muted">Not attempted</small></div>'}
+                            ${item.attempts > 0 ? `
+                                <div class="mb-3">
+                                    <small class="text-info">${item.attempts} attempt${item.attempts > 1 ? 's' : ''}</small>
+                                </div>
+                            ` : ''}
+                            <div class="progress mb-2" style="height: 8px;">
+                                <div class="progress-bar ${item.completed > 0 ? 'bg-success' : 'bg-secondary'}" 
+                                     style="width: ${(item.completed / item.total) * 100}%"></div>
+                            </div>
+                            <button onclick="startScenario('${item.id}')" class="btn ${item.completed > 0 ? 'btn-outline-primary' : 'btn-primary'} btn-sm">
+                                ${item.completed > 0 ? 'Try Again' : 'Start Scenario'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function startScenario(scenarioType) {
+            if (!currentUser) {
+                alert('Please log in to play scenarios and track your progress.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            currentScenario = scenarios[scenarioType];
+            currentScenarioType = scenarioType;
+            currentSituation = 0;
+            score = 0;
+            choices = [];
+            startTime = new Date();
+
+            // Save scenario start to database
+            await saveScenarioStart(scenarioType);
+
+            document.getElementById('scenarioSelection').classList.add('d-none');
+            document.getElementById('scenarioGame').classList.remove('d-none');
+
+            document.getElementById('scenarioTitle').textContent = currentScenario.title;
+            document.getElementById('scenarioSubtitle').textContent = currentScenario.subtitle;
+
+            showCurrentSituation();
+        }
+
+        async function saveScenarioStart(scenarioType) {
+            try {
+                const scenarioNames = {
+                    'engineering': 'Engineering Challenge',
+                    'healthcare': 'Healthcare Challenge',
+                    'business': 'Business Challenge',
+                    'teaching': 'Teaching Challenge',
+                    'agriculture': 'Agriculture Challenge',
+                    'arts': 'Arts Challenge'
+                };
+
+                // Save or update scenario start in scenarios_progress table
+                await supabase
+                    .from('scenarios_progress')
+                    .upsert([
+                        {
+                            user_id: currentUser.id,
+                            scenario_id: scenarioType,
+                            scenario_name: scenarioNames[scenarioType] || 'Unknown Scenario',
+                            progress_data: {
+                                started_at: new Date().toISOString(),
+                                questions_total: currentScenario.situations.length
+                            },
+                            completed: false,
+                            score: 0
+                        }
+                    ], {
+                        onConflict: 'user_id,scenario_id'
+                    });
+
+                // Also log to user_activities
+                await supabase
+                    .from('user_activities')
+                    .insert([
+                        {
+                            user_id: currentUser.id,
+                            activity_type: 'scenario_started',
+                            activity_data: {
+                                scenario_id: scenarioType,
+                                scenario_name: scenarioNames[scenarioType]
+                            },
+                            timestamp: new Date().toISOString()
+                        }
+                    ]);
+
+                console.log('Scenario start saved successfully');
+            } catch (error) {
+                console.error('Error saving scenario start:', error);
+            }
+        }
+
+        function showCurrentSituation() {
+            const situation = currentScenario.situations[currentSituation];
+
+            document.getElementById('situationTitle').textContent = situation.title;
+            document.getElementById('situationDescription').textContent = situation.description;
+
+            // Update progress
+            const progress = ((currentSituation + 1) / currentScenario.situations.length) * 100;
+            document.getElementById('progressPath').style.strokeDasharray = `${progress}, 100`;
+
+            // Show choices
+            const choicesContainer = document.getElementById('choicesContainer');
+            choicesContainer.innerHTML = situation.choices.map((choice, index) => `
+                <div class="col-12">
+                    <div class="card choice-option border-2 p-3" onclick="selectChoice(${index})">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <span class="badge bg-primary rounded-circle" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                                    ${String.fromCharCode(65 + index)}
+                                </span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0">${choice.text}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update buttons
+            document.getElementById('prevBtn').disabled = currentSituation === 0;
+            document.getElementById('nextBtn').disabled = true;
+        }
+
+        function selectChoice(choiceIndex) {
+            // Remove previous selections
+            document.querySelectorAll('.choice-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            // Add selection to clicked option
+            const selectedOption = document.querySelectorAll('.choice-option')[choiceIndex];
+            selectedOption.classList.add('selected');
+
+            // Store choice
+            const situation = currentScenario.situations[currentSituation];
+            const choice = situation.choices[choiceIndex];
+
+            choices[currentSituation] = {
+                choiceIndex: choiceIndex,
+                points: choice.points,
+                feedback: choice.feedback
+            };
+
+            // Update score
+            score += choice.points;
+            document.getElementById('scoreDisplay').textContent = score;
+
+            // Enable next button
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextSituation() {
+            if (currentSituation < currentScenario.situations.length - 1) {
+                currentSituation++;
+                showCurrentSituation();
+
+                // Restore choice if user goes back and forward
+                if (choices[currentSituation]) {
+                    const choiceIndex = choices[currentSituation].choiceIndex;
+                    document.querySelectorAll('.choice-option')[choiceIndex].classList.add('selected');
+                    document.getElementById('nextBtn').disabled = false;
+                }
+            } else {
+                // Scenario complete
+                completeScenario();
+            }
+        }
+
+        function previousSituation() {
+            if (currentSituation > 0) {
+                currentSituation--;
+                showCurrentSituation();
+
+                // Restore previous choice
+                if (choices[currentSituation]) {
+                    const choiceIndex = choices[currentSituation].choiceIndex;
+                    document.querySelectorAll('.choice-option')[choiceIndex].classList.add('selected');
+                    document.getElementById('nextBtn').disabled = false;
+                }
+            }
+        }
+
+        async function completeScenario() {
+            const endTime = new Date();
+            const completionTime = Math.round((endTime - startTime) / 1000);
+            const minutes = Math.floor(completionTime / 60);
+            const seconds = completionTime % 60;
+
+            document.getElementById('scenarioGame').classList.add('d-none');
+            document.getElementById('scenarioResults').classList.remove('d-none');
+
+            // Show results
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('xpEarned').textContent = '+' + Math.round(score * 0.6);
+            document.getElementById('timeCompleted').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            // Show performance analysis
+            showPerformanceAnalysis();
+
+            // Save results
+            await saveScenarioResults();
+        }
+
+        function showPerformanceAnalysis() {
+            const maxScore = currentScenario.situations.reduce((total, situation) => {
+                return total + Math.max(...situation.choices.map(choice => choice.points));
+            }, 0);
+
+            const percentage = Math.round((score / maxScore) * 100);
+            let performance = 'Good job!';
+            let performanceClass = 'text-success';
+
+            if (percentage >= 90) {
+                performance = 'Excellent! Outstanding decision-making skills.';
+                performanceClass = 'text-success';
+            } else if (percentage >= 75) {
+                performance = 'Great work! You made mostly good decisions.';
+                performanceClass = 'text-primary';
+            } else if (percentage >= 60) {
+                performance = 'Good effort! There\'s room for improvement.';
+                performanceClass = 'text-warning';
+            } else {
+                performance = 'Keep practicing! Consider retrying the scenario.';
+                performanceClass = 'text-danger';
+            }
+
+            const analysisContainer = document.getElementById('performanceAnalysis');
+            analysisContainer.innerHTML = `
+                <div class="alert alert-light border-0">
+                    <h4 class="${performanceClass}">${performance}</h4>
+                    <p class="mb-0">You scored ${score} out of ${maxScore} possible points (${percentage}%).</p>
+                </div>
+                
+                <h5 class="mt-4 mb-3">Situation Breakdown:</h5>
+                ${currentScenario.situations.map((situation, index) => `
+                    <div class="card border-0 bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="fw-bold">${situation.title}</h6>
+                            <p class="mb-2">${choices[index] ? choices[index].feedback : 'No choice made'}</p>
+                            <div class="d-flex justify-content-between">
+                                <span>Points earned: ${choices[index] ? choices[index].points : 0}</span>
+                                <span>Max possible: ${Math.max(...situation.choices.map(c => c.points))}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        async function saveScenarioResults() {
+            try {
+                const completionTime = Math.round((new Date() - startTime) / 1000);
+                
+                const scenarioNames = {
+                    'engineering': 'Engineering Challenge',
+                    'healthcare': 'Healthcare Challenge',
+                    'business': 'Business Challenge', 
+                    'teaching': 'Teaching Challenge',
+                    'agriculture': 'Agriculture Challenge',
+                    'arts': 'Arts Challenge'
+                };
+
+                // Save to scenarios_progress table (main progress tracking)
+                await supabase
+                    .from('scenarios_progress')
+                    .upsert([
+                        {
+                            user_id: currentUser.id,
+                            scenario_id: currentScenarioType,
+                            scenario_name: scenarioNames[currentScenarioType] || currentScenario.title,
+                            progress_data: {
+                                choices: choices,
+                                time_taken_minutes: Math.round(completionTime / 60),
+                                total_questions: currentScenario.situations.length,
+                                completion_date: new Date().toISOString()
+                            },
+                            completed: true,
+                            score: score,
+                            completed_at: new Date().toISOString()
+                        }
+                    ], {
+                        onConflict: 'user_id,scenario_id'
+                    });
+
+                // Also save to user_activities for general activity tracking
+                await supabase
+                    .from('user_activities')
+                    .insert([
+                        {
+                            user_id: currentUser.id,
+                            activity_type: 'scenario_completed',
+                            activity_data: {
+                                scenario_id: currentScenarioType,
+                                scenario_name: scenarioNames[currentScenarioType],
+                                score: score,
+                                choices: choices,
+                                completion_time: completionTime
+                            },
+                            timestamp: new Date().toISOString()
+                        }
+                    ]);
+
+                console.log('Scenario results saved successfully');
+            } catch (error) {
+                console.error('Error saving scenario results:', error);
+                // Show user-friendly error message
+                showCustomAlert('Failed to save your progress. Please try again.', 'error');
+            }
+        }
+
+        function exitScenario() {
+            showConfirmDialog('Are you sure you want to exit? Your progress will be lost.', () => {
+                backToScenarios();
+            });
+        }
+
+        function retryScenario() {
+            startScenario(currentScenarioType);
+        }
+
+        async function backToScenarios() {
+            document.getElementById('scenarioGame').classList.add('d-none');
+            document.getElementById('scenarioResults').classList.add('d-none');
+            document.getElementById('scenarioSelection').classList.remove('d-none');
+
+            // Reload progress
+            await loadScenarioProgress();
+        }
+
+        function changeLanguage() {
+            const select = document.getElementById('languageSelect');
+            const currentLanguage = select.value;
+
+            document.querySelectorAll('[data-en]').forEach(element => {
+                if (currentLanguage === 'en') {
+                    element.textContent = element.getAttribute('data-en');
+                } else {
+                    element.textContent = element.getAttribute('data-sw');
+                }
+            });
+        }
+
+        // Custom dialog functions to replace alert/confirm
+        function showCustomAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'position-fixed top-0 start-50 translate-middle-x p-3';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                <div class="alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function showConfirmDialog(message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade show d-block';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Action</h5>
+                        </div>
+                        <div class="modal-body">
+                            <p>${message}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="this.closest('.modal').remove(); onConfirm()">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Show auth section after page load
+        document.getElementById('authSection').classList.remove('d-none');
+    </script>
+
+</body>
+
+</html>

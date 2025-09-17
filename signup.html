@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - CBE Career Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #5D5CDE;
+            --secondary: #FF6B35;
+            --accent: #4ECDC4;
+            --success: #45B7D1;
+            --kenya-black: #000000;
+            --kenya-red: #CE1126;
+            --kenya-green: #006B3F;
+            --kenya-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e6efff 50%, #f0f8ff 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .gradient-kenya {
+            background: linear-gradient(135deg, var(--kenya-green) 0%, var(--kenya-red) 50%, var(--kenya-black) 100%);
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            opacity: 0.9;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
+        .bg-primary {
+            background-color: var(--primary) !important;
+        }
+
+        .card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(93, 92, 222, 0.25);
+        }
+
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(93, 92, 222, 0.25);
+        }
+
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .footer {
+            background-color: #212529;
+            margin-top: auto;
+        }
+
+        .password-mismatch {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+        }
+
+        .code-champ-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .strength-meter {
+            height: 4px;
+            background-color: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .strength-meter-fill {
+            height: 100%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+            width: 0%;
+            background-color: #dc3545;
+        }
+
+        .strength-weak { background-color: #dc3545; }
+        .strength-fair { background-color: #ffc107; }
+        .strength-good { background-color: #20c997; }
+        .strength-strong { background-color: #198754; }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top border-bottom">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="/images/code champ logo.jpg" alt="Code Champ Logo" class="code-champ-logo me-3">
+                <div>
+                    <span class="fw-bold fs-4 text-primary">CBE Career Guide</span>
+                    <div class="small text-muted d-none d-sm-block">
+                        <span>🇰🇪 A Code Champ Project</span>
+                    </div>
+                </div>
+            </a>
+
+            <div class="d-flex align-items-center">
+                <a href="login.html" class="btn btn-outline-primary">
+                    <span class="d-none d-sm-inline">Already have an account? </span>Login
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1 d-flex align-items-center justify-content-center py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6">
+
+                    <!-- Signup Form -->
+                    <div class="card shadow-lg rounded-4 p-4">
+                        <div class="text-center mb-4">
+                            <div class="gradient-bg rounded-4 d-inline-flex align-items-center justify-content-center mb-3 floating-animation"
+                                style="width: 80px; height: 80px;">
+                                <i class="fas fa-user-plus text-white fs-2"></i>
+                            </div>
+                            <h2 class="fw-bold mb-2">Join CBE Career Guide</h2>
+                            <p class="text-muted">Start your career discovery journey today</p>
+                        </div>
+
+                        <form id="signupForm">
+                            <!-- Name Fields -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="firstName" class="form-label fw-medium">First Name</label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" required
+                                        placeholder="First name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="lastName" class="form-label fw-medium">Last Name</label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" required
+                                        placeholder="Last name">
+                                </div>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-medium">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-envelope text-muted"></i>
+                                    </span>
+                                    <input type="email" class="form-control" id="email" name="email" required
+                                        placeholder="Enter your email">
+                                </div>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="mb-3">
+                                <label for="password" class="form-label fw-medium">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock text-muted"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="password" name="password" required
+                                        minlength="6" placeholder="Create a password">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        onclick="togglePassword('password')">
+                                        <i id="passwordToggle" class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="strength-meter">
+                                    <div class="strength-meter-fill" id="strengthMeter"></div>
+                                </div>
+                                <div class="form-text" id="passwordHelp">Password must be at least 6 characters long</div>
+                            </div>
+
+                            <!-- Confirm Password Field -->
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label fw-medium">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-lock text-muted"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="confirmPassword"
+                                        name="confirmPassword" required minlength="6"
+                                        placeholder="Confirm your password">
+                                    <button type="button" class="btn btn-outline-secondary"
+                                        onclick="togglePassword('confirmPassword')">
+                                        <i id="confirmPasswordToggle" class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- School Field -->
+                            <div class="mb-3">
+                                <label for="school" class="form-label fw-medium">School/Institution</label>
+                                <input type="text" class="form-control" id="school" name="school" 
+                                    placeholder="Enter your school or institution name (optional)">
+                            </div>
+
+                            <!-- Grade and County Fields -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="grade" class="form-label fw-medium">Current Grade</label>
+                                    <select class="form-select" id="grade" name="grade" required>
+                                        <option value="">Select Grade</option>
+                                        <option value="Grade 7">Grade 7</option>
+                                        <option value="Grade 8">Grade 8</option>
+                                        <option value="Grade 9">Grade 9</option>
+                                        <option value="Grade 10">Grade 10</option>
+                                        <option value="Grade 11">Grade 11</option>
+                                        <option value="Grade 12">Grade 12</option>
+                                        <option value="University">University</option>
+                                        <option value="Graduate">Graduate</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="county" class="form-label fw-medium">County</label>
+                                    <select class="form-select" id="county" name="county" required>
+                                        <option value="">Select County</option>
+                                        <option value="Baringo">Baringo</option>
+                                        <option value="Bomet">Bomet</option>
+                                        <option value="Bungoma">Bungoma</option>
+                                        <option value="Busia">Busia</option>
+                                        <option value="Elgeyo-Marakwet">Elgeyo-Marakwet</option>
+                                        <option value="Embu">Embu</option>
+                                        <option value="Garissa">Garissa</option>
+                                        <option value="Homa Bay">Homa Bay</option>
+                                        <option value="Isiolo">Isiolo</option>
+                                        <option value="Kajiado">Kajiado</option>
+                                        <option value="Kakamega">Kakamega</option>
+                                        <option value="Kericho">Kericho</option>
+                                        <option value="Kiambu">Kiambu</option>
+                                        <option value="Kilifi">Kilifi</option>
+                                        <option value="Kirinyaga">Kirinyaga</option>
+                                        <option value="Kisii">Kisii</option>
+                                        <option value="Kisumu">Kisumu</option>
+                                        <option value="Kitui">Kitui</option>
+                                        <option value="Kwale">Kwale</option>
+                                        <option value="Laikipia">Laikipia</option>
+                                        <option value="Lamu">Lamu</option>
+                                        <option value="Machakos">Machakos</option>
+                                        <option value="Makueni">Makueni</option>
+                                        <option value="Mandera">Mandera</option>
+                                        <option value="Marsabit">Marsabit</option>
+                                        <option value="Meru">Meru</option>
+                                        <option value="Migori">Migori</option>
+                                        <option value="Mombasa">Mombasa</option>
+                                        <option value="Murang'a">Murang'a</option>
+                                        <option value="Nairobi">Nairobi</option>
+                                        <option value="Nakuru">Nakuru</option>
+                                        <option value="Nandi">Nandi</option>
+                                        <option value="Narok">Narok</option>
+                                        <option value="Nyamira">Nyamira</option>
+                                        <option value="Nyandarua">Nyandarua</option>
+                                        <option value="Nyeri">Nyeri</option>
+                                        <option value="Samburu">Samburu</option>
+                                        <option value="Siaya">Siaya</option>
+                                        <option value="Taita-Taveta">Taita-Taveta</option>
+                                        <option value="Tana River">Tana River</option>
+                                        <option value="Tharaka-Nithi">Tharaka-Nithi</option>
+                                        <option value="Trans Nzoia">Trans Nzoia</option>
+                                        <option value="Turkana">Turkana</option>
+                                        <option value="Uasin Gishu">Uasin Gishu</option>
+                                        <option value="Vihiga">Vihiga</option>
+                                        <option value="Wajir">Wajir</option>
+                                        <option value="West Pokot">West Pokot</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Terms Checkbox -->
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="terms" required>
+                                    <label class="form-check-label small" for="terms">
+                                        I agree to the <a href="#" class="text-primary text-decoration-none">Terms of
+                                            Service</a>
+                                        and <a href="#" class="text-primary text-decoration-none">Privacy Policy</a>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" id="signupBtn" class="btn btn-primary w-100 py-3 fw-semibold mb-3">
+                                <span id="signupBtnText">Create Account</span>
+                                <i id="signupSpinner" class="fas fa-spinner fa-spin ms-2 d-none"></i>
+                            </button>
+                        </form>
+
+                        <!-- Login Link -->
+                        <div class="text-center">
+                            <p class="small text-muted">
+                                Already have an account?
+                                <a href="login.html" class="text-primary fw-medium text-decoration-none">Sign in
+                                    here</a>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div class="text-center mt-3">
+                        <p class="small text-muted">
+                            By creating an account, you agree to our
+                            <a href="#" class="text-primary text-decoration-none">Terms of Service</a> and
+                            <a href="#" class="text-primary text-decoration-none">Privacy Policy</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <p class="mb-0 small text-light-emphasis">
+                        © 2025 CBE Career Guide. All rights reserved.
+                    </p>
+                    <p class="mb-0 small text-muted">
+                        Code Champ Project - Career Guidance Platform
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 small fw-medium">
+                        Developed by <span class="text-warning fw-bold">Code Champ</span> 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://vxoiunxiaxhxhpbajjgl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4b2l1bnhpYXhoeGhwYmFqamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNTIzMjQsImV4cCI6MjA3MjgyODMyNH0.wR7ANQfYOKaQg1sh6067TX9u9p5dtwoM8FsfmiwztPk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Enhanced Signup Form Handler
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const school = document.getElementById('school').value.trim();
+            const grade = document.getElementById('grade').value;
+            const county = document.getElementById('county').value;
+
+            // Enhanced validation
+            if (!validateForm(firstName, lastName, email, password, confirmPassword, grade, county)) {
+                return;
+            }
+
+            const signupBtn = document.getElementById('signupBtn');
+            const signupBtnText = document.getElementById('signupBtnText');
+            const signupSpinner = document.getElementById('signupSpinner');
+
+            // Show loading state
+            signupBtn.disabled = true;
+            signupBtnText.textContent = 'Creating Account...';
+            signupSpinner.classList.remove('d-none');
+
+            try {
+                // Step 1: Create user account with Supabase Auth
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: `${firstName} ${lastName}`,
+                            first_name: firstName,
+                            last_name: lastName,
+                            school: school,
+                            grade: grade,
+                            county: county
+                        }
+                    }
+                });
+
+                if (authError) throw authError;
+
+                // Step 2: Create user profile in database (if user is created)
+                if (authData.user) {
+                    await createUserProfile(authData.user, firstName, lastName, email, school, grade, county);
+                    await trackSignupActivity(authData.user.id);
+                    await createWelcomeAchievement(authData.user.id);
+                    await createDefaultPreferences(authData.user.id);
+                }
+
+                // Success message
+                if (authData.user && !authData.user.email_confirmed_at) {
+                    showSuccessMessage('Account created successfully! Please check your email to verify your account before signing in.');
+                } else {
+                    showSuccessMessage('Account created successfully! You can now sign in.');
+                }
+
+                // Clear form and redirect
+                document.getElementById('signupForm').reset();
+                resetPasswordStrength();
+                
+                setTimeout(() => {
+                    window.location.href = 'login.html?message=signup_success';
+                }, 3000);
+
+            } catch (error) {
+                console.error('Signup error:', error);
+                
+                let errorMessage = 'Failed to create account. Please try again.';
+                if (error.message.includes('already registered')) {
+                    errorMessage = 'An account with this email already exists. Please sign in instead.';
+                } else if (error.message.includes('Password')) {
+                    errorMessage = 'Password is too weak. Please choose a stronger password.';
+                } else if (error.message.includes('email')) {
+                    errorMessage = 'Please enter a valid email address.';
+                }
+                
+                showErrorMessage(errorMessage);
+            } finally {
+                // Reset button state
+                signupBtn.disabled = false;
+                signupBtnText.textContent = 'Create Account';
+                signupSpinner.classList.add('d-none');
+            }
+        });
+
+        // Enhanced validation function
+        function validateForm(firstName, lastName, email, password, confirmPassword, grade, county) {
+            // Check required fields
+            if (!firstName || !lastName || !email || !password || !grade || !county) {
+                showErrorMessage('Please fill in all required fields.');
+                return false;
+            }
+
+            // Validate name fields
+            if (firstName.length < 2 || lastName.length < 2) {
+                showErrorMessage('First name and last name must be at least 2 characters long.');
+                return false;
+            }
+
+            // Check for valid characters in names
+            const nameRegex = /^[a-zA-Z\s'-]+$/;
+            if (!nameRegex.test(firstName) || !nameRegex.test(lastName)) {
+                showErrorMessage('Names can only contain letters, spaces, hyphens, and apostrophes.');
+                return false;
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showErrorMessage('Please enter a valid email address.');
+                return false;
+            }
+
+            // Validate password strength
+            if (password.length < 6) {
+                showErrorMessage('Password must be at least 6 characters long.');
+                return false;
+            }
+
+            // Check password confirmation
+            if (password !== confirmPassword) {
+                showErrorMessage('Passwords do not match!');
+                return false;
+            }
+
+            // Check terms acceptance
+            if (!document.getElementById('terms').checked) {
+                showErrorMessage('Please accept the Terms of Service and Privacy Policy.');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Create user profile in database
+        async function createUserProfile(user, firstName, lastName, email, school, grade, county) {
+            try {
+                const profileData = {
+                    user_id: user.id,
+                    full_name: `${firstName} ${lastName}`,
+                    email: email,
+                    school: school || '',
+                    grade: grade,
+                    county: county,
+                    phone_number: '',
+                    date_of_birth: null,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .insert([profileData]);
+
+                if (error) {
+                    console.error('Error creating user profile:', error);
+                }
+            } catch (error) {
+                console.error('Error in createUserProfile:', error);
+            }
+        }
+
+        // Track signup activity
+        async function trackSignupActivity(userId) {
+            try {
+                const activityData = {
+                    user_id: userId,
+                    activity_type: 'account_created',
+                    activity_data: {
+                        signup_method: 'email',
+                        signup_page: 'signup.html',
+                        platform: navigator.platform,
+                        referrer: document.referrer || 'direct',
+                        screen_resolution: `${window.screen.width}x${window.screen.height}`,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    },
+                    page_visited: 'signup.html',
+                    session_id: generateSessionId(),
+                    timestamp: new Date().toISOString()
+                };
+
+                const { error } = await supabase
+                    .from('user_activities')
+                    .insert([activityData]);
+
+                if (error) {
+                    console.error('Error tracking signup activity:', error);
+                }
+            } catch (error) {
+                console.error('Error in trackSignupActivity:', error);
+            }
+        }
+
+        // Create welcome achievement
+        async function createWelcomeAchievement(userId) {
+            try {
+                const achievementData = {
+                    user_id: userId,
+                    achievement_type: 'welcome',
+                    achievement_name: 'Welcome to CBE Career Guide!',
+                    achievement_description: 'Successfully created your account and joined the CBE Career Guide community',
+                    achievement_data: { 
+                        points_earned: 50, 
+                        category: 'onboarding',
+                        level: 'bronze'
+                    },
+                    earned_at: new Date().toISOString()
+                };
+
+                const { error } = await supabase
+                    .from('user_achievements')
+                    .insert([achievementData]);
+
+                if (error) {
+                    console.error('Error creating welcome achievement:', error);
+                }
+            } catch (error) {
+                console.error('Error in createWelcomeAchievement:', error);
+            }
+        }
+
+        // Create default pathway preferences
+        async function createDefaultPreferences(userId) {
+            try {
+                const preferencesData = {
+                    user_id: userId,
+                    pathway_type: '',
+                    preference_score: 0,
+                    subjects_interested: [],
+                    career_goals: '',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                const { error } = await supabase
+                    .from('pathway_preferences')
+                    .insert([preferencesData]);
+
+                if (error) {
+                    console.error('Error creating default preferences:', error);
+                }
+            } catch (error) {
+                console.error('Error in createDefaultPreferences:', error);
+            }
+        }
+
+        // Generate session ID for tracking
+        function generateSessionId() {
+            return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            let feedback = '';
+
+            if (password.length >= 6) strength += 1;
+            if (password.length >= 8) strength += 1;
+            if (/[a-z]/.test(password)) strength += 1;
+            if (/[A-Z]/.test(password)) strength += 1;
+            if (/[0-9]/.test(password)) strength += 1;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+
+            const strengthMeter = document.getElementById('strengthMeter');
+            const passwordHelp = document.getElementById('passwordHelp');
+
+            if (strength <= 2) {
+                strengthMeter.className = 'strength-meter-fill strength-weak';
+                strengthMeter.style.width = '25%';
+                feedback = 'Weak password';
+            } else if (strength <= 3) {
+                strengthMeter.className = 'strength-meter-fill strength-fair';
+                strengthMeter.style.width = '50%';
+                feedback = 'Fair password';
+            } else if (strength <= 4) {
+                strengthMeter.className = 'strength-meter-fill strength-good';
+                strengthMeter.style.width = '75%';
+                feedback = 'Good password';
+            } else {
+                strengthMeter.className = 'strength-meter-fill strength-strong';
+                strengthMeter.style.width = '100%';
+                feedback = 'Strong password';
+            }
+
+            passwordHelp.textContent = feedback;
+        }
+
+        function resetPasswordStrength() {
+            const strengthMeter = document.getElementById('strengthMeter');
+            const passwordHelp = document.getElementById('passwordHelp');
+            strengthMeter.style.width = '0%';
+            passwordHelp.textContent = 'Password must be at least 6 characters long';
+        }
+
+        // Password visibility toggle
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const passwordToggle = document.getElementById(fieldId + 'Toggle');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.className = 'fas fa-eye';
+            }
+        }
+
+        // Real-time password validation
+        document.getElementById('password').addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+
+        document.getElementById('confirmPassword').addEventListener('input', function () {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+
+            if (confirmPassword && password !== confirmPassword) {
+                this.classList.add('password-mismatch');
+            } else {
+                this.classList.remove('password-mismatch');
+            }
+        });
+
+        // Toast notification functions
+        function showSuccessMessage(message) {
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '1050';
+            toastContainer.innerHTML = `
+                <div class="toast align-items-center text-white bg-success border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-check-circle me-2"></i>${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toastContainer);
+
+            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+            toast.show();
+
+            setTimeout(() => {
+                toastContainer.remove();
+            }, 5000);
+        }
+
+        function showErrorMessage(message) {
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '1050';
+            toastContainer.innerHTML = `
+                <div class="toast align-items-center text-white bg-danger border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-exclamation-circle me-2"></i>${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toastContainer);
+
+            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+            toast.show();
+
+            setTimeout(() => {
+                toastContainer.remove();
+            }, 5000);
+        }
+
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Error checking auth state:', error);
+            }
+        });
+
+        // Form enhancement: Auto-focus next field on enter
+        document.querySelectorAll('input, select').forEach((input, index, inputs) => {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && this.type !== 'submit') {
+                    e.preventDefault();
+                    const nextInput = inputs[index + 1];
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

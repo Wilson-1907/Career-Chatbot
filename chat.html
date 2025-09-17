@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Chat - CBE Career Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #5D5CDE;
+            --secondary: #F59E0B;
+            --accent: #10B981;
+            --success: #059669;
+            --info: #0EA5E9;
+            --warning: #F59E0B;
+            --danger: #DC2626;
+            --code-champ-blue: #5D5CDE;
+            --code-champ-green: #10B981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .navbar {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-container {
+            height: calc(100vh - 76px - 50px); /* Adjusted for footer */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        }
+
+        .chat-header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .chat-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 3;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .message-user {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .message-ai {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message-user .message-bubble {
+            background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-ai .message-bubble {
+            background: white;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .message-user .message-avatar {
+            background: linear-gradient(135deg, #8B5CF6 0%, var(--primary) 100%);
+            color: white;
+            order: 2;
+        }
+
+        .message-ai .message-avatar {
+            background: linear-gradient(135deg, var(--accent) 0%, #14B8A6 100%);
+            color: white;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #9CA3AF;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .chat-input-container {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input {
+            border: 2px solid #e5e7eb;
+            border-radius: 25px;
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(93, 92, 222, 0.1);
+            outline: none;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 100%);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(93, 92, 222, 0.3);
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(93, 92, 222, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(93, 92, 222, 0.3);
+        }
+
+        .thinking-indicator {
+            display: none;
+            padding: 1rem 1.25rem;
+            background: white;
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+            max-width: 70%;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .thinking-text {
+            color: #6B7280;
+            font-style: italic;
+            animation: pulse 2s infinite;
+        }
+
+        .creation-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .creation-icon {
+            color: var(--primary);
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.8;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .thinking-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .thinking-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: thinking 1.4s infinite ease-in-out;
+        }
+
+        .thinking-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .thinking-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes thinking {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .quick-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .suggestion-chip {
+            background: rgba(93, 92, 222, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(93, 92, 222, 0.2);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 2rem;
+            color: #6B7280;
+        }
+
+        .welcome-message .ai-icon {
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--accent) 0%, #14B8A6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .code-champ-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(93, 92, 222, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5B21B6 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(93, 92, 222, 0.4);
+        }
+
+        /* Footer Styles */
+        .chat-footer {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            text-align: center;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .chat-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading states */
+        .loading-history {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            color: #6B7280;
+            font-style: italic;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .chat-controls {
+                position: relative;
+                top: auto;
+                right: auto;
+                justify-content: center;
+                margin-top: 1rem;
+            }
+
+            .chat-header {
+                padding: 1rem;
+            }
+
+            .control-btn {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.6rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top border-bottom">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <img src="/images/code champ logo.jpg" alt="Code Champ Logo" class="code-champ-logo me-3">
+                <div>
+                    <span class="fw-bold fs-4 text-primary">CBE Career Guide</span>
+                    <div class="small text-muted d-none d-sm-block">
+                        <span data-en="A Code Champ Project" data-sw="Mradi wa Code Champ">A Code Champ Project</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Mobile toggle button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navigation Menu -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="chat.html">
+                            <i class="fas fa-comments me-2"></i>
+                            <span data-en="AI Chat" data-sw="Mazungumzo ya AI">AI Chat</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="assessment.html">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            <span data-en="Assessment" data-sw="Tathmini">Assessment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pathways.html">
+                            <i class="fas fa-route me-2"></i>
+                            <span data-en="Pathways" data-sw="Njia">Pathways</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="careers.html">
+                            <i class="fas fa-briefcase me-2"></i>
+                            <span data-en="Careers" data-sw="Kazi">Careers</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="scenarios.html">
+                            <i class="fas fa-gamepad me-2"></i>
+                            <span data-en="Scenarios" data-sw="Hali">Scenarios</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="resources.html">
+                            <i class="fas fa-book me-2"></i>
+                            <span data-en="Resources" data-sw="Rasilimali">Resources</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Right Section -->
+                <div class="d-flex align-items-center">
+                    <!-- Language Selector -->
+                    <select id="languageSelect" onchange="changeLanguage()" class="form-select form-select-sm me-3"
+                        style="width: auto;">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="sw">🇰🇪 Kiswahili</option>
+                    </select>
+
+                    <!-- Auth Section -->
+                    <div id="authSection">
+                        <!-- Not Logged In -->
+                        <div id="notLoggedIn" class="d-flex gap-2">
+                            <a href="login.html" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                <span data-en="Login" data-sw="Ingia">Login</span>
+                            </a>
+                            <a href="signup.html" class="btn btn-primary btn-sm">
+                                <i class="fas fa-user-plus me-1"></i>
+                                <span data-en="Sign Up" data-sw="Jisajili">Sign Up</span>
+                            </a>
+                        </div>
+
+                        <!-- Logged In -->
+                        <div id="loggedIn" class="d-none">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="fas fa-user me-1"></i>
+                                    <span id="userName">Student</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="profile.html">
+                                            <i class="fas fa-user me-2"></i>Profile
+                                        </a></li>
+                                    <li><a class="dropdown-item" href="dashboard.html">
+                                            <i class="fas fa-chart-line me-2"></i>Dashboard
+                                        </a></li>
+                                    <li><a class="dropdown-item" href="history.html">
+                                            <i class="fas fa-history me-2"></i>History
+                                        </a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="signOut()">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                                        </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Chat Container -->
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <!-- Chat Controls -->
+            <div class="chat-controls">
+                <button class="control-btn" onclick="loadChatHistory()" title="Load Previous Chats">
+                    <i class="fas fa-history me-1"></i>
+                    <span data-en="History" data-sw="Historia">History</span>
+                </button>
+                <button class="control-btn" onclick="clearChat()" title="Clear Current Chat">
+                    <i class="fas fa-trash me-1"></i>
+                    <span data-en="Clear" data-sw="Futa">Clear</span>
+                </button>
+            </div>
+
+            <div class="chat-header-content">
+                <h2 class="mb-2">
+                    <i class="fas fa-robot me-2"></i>
+                    <span data-en="AI Career Assistant" data-sw="Msaidizi wa Kazi wa AI">AI Career Assistant</span>
+                </h2>
+                <p class="mb-0 opacity-90">
+                    <span data-en="Get personalized career guidance for Kenya's CBE system"
+                        data-sw="Pata mwongozo wa kibinafsi wa kazi kwa mfumo wa CBE wa Kenya">Get personalized career
+                        guidance for Kenya's CBE system</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chatMessages">
+            <!-- Loading History Indicator -->
+            <div class="loading-history" id="loadingHistory">
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                <span data-en="Loading chat history..." data-sw="Inapakia historia ya mazungumzo...">Loading chat history...</span>
+            </div>
+
+            <!-- Welcome Message -->
+            <div class="welcome-message" id="welcomeMessage">
+                <div class="ai-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h4 class="mb-3">
+                    <span data-en="Welcome to your AI Career Guide!"
+                        data-sw="Karibu kwenye Mwongozo wako wa Kazi wa AI!">Welcome to your AI Career Guide!</span>
+                </h4>
+                <p class="mb-4">
+                    <span
+                        data-en="I'm here to help you navigate Kenya's Competency Based Education system and discover the perfect career path for you."
+                        data-sw="Nipo hapa kukusaidia kuongoza mfumo wa Elimu ya Msingi wa Uwezo wa Kenya na kugundua njia kamilifu ya kazi kwako.">I'm
+                        here to help you navigate Kenya's Competency Based Education system and discover the perfect
+                        career path for you.</span>
+                </p>
+
+                <!-- Quick Suggestions -->
+                <div class="quick-suggestions">
+                    <div class="suggestion-chip" onclick="sendSuggestion('What are the CBE pathways?')">
+                        <span data-en="What are the CBE pathways?" data-sw="Njia za CBE ni zipi?">What are the CBE
+                            pathways?</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="sendSuggestion('Help me choose a career')">
+                        <span data-en="Help me choose a career" data-sw="Nisaidie kuchagua kazi">Help me choose a
+                            career</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="sendSuggestion('What is STEM pathway?')">
+                        <span data-en="What is STEM pathway?" data-sw="Njia ya STEM ni nini?">What is STEM
+                            pathway?</span>
+                    </div>
+                    <div class="suggestion-chip" onclick="sendSuggestion('Tell me about university requirements')">
+                        <span data-en="Tell me about university requirements"
+                            data-sw="Niambie kuhusu mahitaji ya chuo kikuu">Tell me about university requirements</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thinking Indicator -->
+            <div class="message message-ai" id="thinkingIndicator">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="thinking-indicator">
+                    <div class="creation-status">
+                        <i class="fas fa-cog creation-icon"></i>
+                        <div>
+                            <div class="thinking-text" id="creationText">
+                                <span data-en="Creating your response..." data-sw="Kuunda jibu lako...">Creating your response...</span>
+                            </div>
+                            <div class="thinking-dots">
+                                <div class="thinking-dot"></div>
+                                <div class="thinking-dot"></div>
+                                <div class="thinking-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+            <div class="d-flex gap-3 align-items-end">
+                <div class="flex-grow-1">
+                    <textarea id="chatInput" class="form-control chat-input"
+                        placeholder="Ask me anything about careers and CBE pathways..."
+                        data-en-placeholder="Ask me anything about careers and CBE pathways..."
+                        data-sw-placeholder="Niulize chochote kuhusu kazi na njia za CBE..." rows="1"
+                        onkeypress="handleKeyPress(event)" oninput="autoResize(this)"></textarea>
+                </div>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="chat-footer">
+        <span data-en="Developed by" data-sw="Imetengenezwa na">Developed by</span> 
+        <a href="https://codechamp.com" target="_blank"><strong>Code Champ</strong></a> 
+        <span>2025</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://vxoiunxiaxhxhpbajjgl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4b2l1bnhpYXhoeGhwYmFqamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNTIzMjQsImV4cCI6MjA3MjgyODMyNH0.wR7ANQfYOKaQg1sh6067TX9u9p5dtwoM8FsfmiwztPk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Global variables
+        let currentUser = null;
+        let currentLanguage = 'en';
+        let geminiConfig = null;
+        let currentSessionId = null;
+        let chatHistory = [];
+        let creationMessages = {
+            en: [
+                "Creating your response...",
+                "Analyzing your question...",
+                "Generating career insights...",
+                "Processing CBE information...",
+                "Crafting personalized guidance...",
+                "Preparing career recommendations...",
+                "Thinking about your career path...",
+                "Analyzing educational options..."
+            ],
+            sw: [
+                "Kuunda jibu lako...",
+                "Kuchambua swali lako...",
+                "Kutoa maarifa ya kazi...",
+                "Kusindika maelezo ya CBE...",
+                "Kuandaa mwongozo wa kibinafsi...",
+                "Kuandaa mapendekezo ya kazi...",
+                "Kufikiria kuhusu njia yako ya kazi...",
+                "Kuchambua chaguzi za elimu..."
+            ]
+        };
+        let currentCreationIndex = 0;
+        let creationInterval = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAuthState();
+            loadLanguage();
+            loadGeminiConfig();
+            autoResize(document.getElementById('chatInput'));
+        });
+
+        // Load Gemini API configuration from database
+        async function loadGeminiConfig() {
+            try {
+                const { data, error } = await supabase.rpc('get_api_config', {
+                    service_name_param: 'gemini'
+                });
+
+                if (error) throw error;
+
+                if (data) {
+                    geminiConfig = data;
+                    console.log('Gemini API configuration loaded successfully');
+                } else {
+                    console.warn('No Gemini API configuration found in database');
+                    // Fallback to hardcoded values
+                    geminiConfig = {
+                        api_key: 'AIzaSyDumlwe8yV6zJdTqUx9CW2lD_D-upVPjUQ',
+                        api_url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+                        configuration: {
+                            temperature: 0.7,
+                            topK: 40,
+                            topP: 0.95,
+                            maxOutputTokens: 1024
+                        },
+                        is_active: true
+                    };
+                }
+            } catch (error) {
+                console.error('Error loading Gemini config:', error);
+                // Fallback configuration
+                geminiConfig = {
+                    api_key: 'AIzaSyDumlwe8yV6zJdTqUx9CW2lD_D-upVPjUQ',
+                    api_url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+                    configuration: {
+                        temperature: 0.7,
+                        topK: 40,
+                        topP: 0.95,
+                        maxOutputTokens: 1024
+                    },
+                    is_active: true
+                };
+            }
+        }
+
+        // Authentication
+        async function checkAuthState() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                currentUser = user;
+
+                if (user) {
+                    document.getElementById('notLoggedIn').classList.add('d-none');
+                    document.getElementById('loggedIn').classList.remove('d-none');
+
+                    // Get user profile
+                    const { data: profile } = await supabase
+                        .from('user_profiles')
+                        .select('full_name')
+                        .eq('user_id', user.id)
+                        .single();
+
+                    if (profile) {
+                        document.getElementById('userName').textContent = profile.full_name.split(' ')[0];
+                    }
+
+                    // Auto-load recent chat history
+                    await loadChatHistory(true);
+                } else {
+                    document.getElementById('notLoggedIn').classList.remove('d-none');
+                    document.getElementById('loggedIn').classList.add('d-none');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            }
+        }
+
+        // Sign out
+        async function signOut() {
+            try {
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        // Language functions
+        function changeLanguage() {
+            const select = document.getElementById('languageSelect');
+            currentLanguage = select.value;
+            localStorage.setItem('selectedLanguage', currentLanguage);
+            updateLanguage();
+        }
+
+        function loadLanguage() {
+            const saved = localStorage.getItem('selectedLanguage');
+            if (saved) {
+                currentLanguage = saved;
+                document.getElementById('languageSelect').value = currentLanguage;
+            }
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            const elements = document.querySelectorAll('[data-en][data-sw]');
+            elements.forEach(element => {
+                const text = element.getAttribute(`data-${currentLanguage}`);
+                if (text) {
+                    element.textContent = text;
+                }
+            });
+
+            // Update placeholder
+            const chatInput = document.getElementById('chatInput');
+            const placeholder = chatInput.getAttribute(`data-${currentLanguage}-placeholder`);
+            if (placeholder) {
+                chatInput.placeholder = placeholder;
+            }
+        }
+
+        // Chat History Functions
+        async function loadChatHistory(autoLoad = false) {
+            if (!currentUser && !autoLoad) {
+                addMessage('Please log in to access chat history.', 'ai');
+                return;
+            }
+
+            if (!currentUser) return;
+
+            try {
+                if (!autoLoad) {
+                    document.getElementById('loadingHistory').style.display = 'block';
+                }
+
+                // Get recent chat conversations (last 20 messages)
+                const { data: conversations, error } = await supabase
+                    .from('chat_conversations')
+                    .select('message, response, timestamp')
+                    .eq('user_id', currentUser.id)
+                    .order('timestamp', { ascending: true })
+                    .limit(20);
+
+                if (error) throw error;
+
+                if (conversations && conversations.length > 0) {
+                    // Clear current messages except welcome
+                    const messagesContainer = document.getElementById('chatMessages');
+                    const welcomeMessage = document.getElementById('welcomeMessage');
+                    const thinkingIndicator = document.getElementById('thinkingIndicator');
+                    const loadingHistory = document.getElementById('loadingHistory');
+                    
+                    // Hide welcome message if we have history
+                    if (!autoLoad) {
+                        welcomeMessage.style.display = 'none';
+                    }
+
+                    // Add messages from history
+                    conversations.forEach(conv => {
+                        if (conv.message) {
+                            const messageTime = new Date(conv.timestamp);
+                            addMessage(conv.message, 'user', messageTime);
+                        }
+                        if (conv.response) {
+                            const responseTime = new Date(conv.timestamp);
+                            responseTime.setSeconds(responseTime.getSeconds() + 1);
+                            addMessage(conv.response, 'ai', responseTime);
+                        }
+                    });
+
+                    chatHistory = conversations;
+                    
+                    if (!autoLoad) {
+                        addMessage(`Loaded ${conversations.length} previous conversations.`, 'ai');
+                    }
+                } else if (!autoLoad) {
+                    addMessage('No previous chat history found.', 'ai');
+                }
+
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+                if (!autoLoad) {
+                    addMessage('Failed to load chat history.', 'ai');
+                }
+            } finally {
+                document.getElementById('loadingHistory').style.display = 'none';
+            }
+        }
+
+        function clearChat() {
+            // Show custom confirmation dialog
+            showConfirmDialog(
+                currentLanguage === 'en' ? 
+                'Are you sure you want to clear the current chat? This action cannot be undone.' :
+                'Je, una uhakika unataka kufuta mazungumzo ya sasa? Hatua hii haiwezi kutendeka.',
+                () => {
+                    // Clear messages container
+                    const messagesContainer = document.getElementById('chatMessages');
+                    const welcomeMessage = document.getElementById('welcomeMessage');
+                    const thinkingIndicator = document.getElementById('thinkingIndicator');
+                    const loadingHistory = document.getElementById('loadingHistory');
+                    
+                    // Remove all messages except static elements
+                    const messages = messagesContainer.querySelectorAll('.message:not(#thinkingIndicator)');
+                    messages.forEach(message => message.remove());
+                    
+                    // Show welcome message again
+                    welcomeMessage.style.display = 'block';
+                    
+                    // Clear chat history array
+                    chatHistory = [];
+                    currentSessionId = null;
+                    
+                    // Show success message
+                    setTimeout(() => {
+                        addMessage(
+                            currentLanguage === 'en' ? 
+                            'Chat cleared successfully! How can I help you today?' :
+                            'Mazungumzo yamefutwa kwa mafanikio! Ninawezaje kukusaidia leo?',
+                            'ai'
+                        );
+                        welcomeMessage.style.display = 'none';
+                    }, 500);
+                }
+            );
+        }
+
+        // Custom confirmation dialog
+        function showConfirmDialog(message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.className = 'position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            modal.style.zIndex = '9999';
+            
+            modal.innerHTML = `
+                <div class="bg-white rounded-3 shadow-lg p-4 mx-3" style="max-width: 400px; width: 100%;">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        <h6 class="mb-0">Confirm Action</h6>
+                    </div>
+                    <p class="text-muted mb-4">${message}</p>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="this.closest('.position-fixed').remove()">
+                            ${currentLanguage === 'en' ? 'Cancel' : 'Ghairi'}
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="this.closest('.position-fixed').remove(); (${onConfirm})()">
+                            ${currentLanguage === 'en' ? 'Confirm' : 'Thibitisha'}
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // Chat functions
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function sendSuggestion(message) {
+            document.getElementById('chatInput').value = message;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Clear input and hide welcome message
+            input.value = '';
+            autoResize(input);
+            document.getElementById('welcomeMessage').style.display = 'none';
+
+            // Add user message
+            addMessage(message, 'user');
+
+            // Show creation loading indicator
+            showCreationLoadingIndicator();
+
+            // Disable send button
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+
+            try {
+                // Save conversation to database if user is logged in
+                if (currentUser) {
+                    // Get or create chat session
+                    if (!currentSessionId) {
+                        const { data: sessionData, error: sessionError } = await supabase.rpc('get_or_create_chat_session', {
+                            user_uuid: currentUser.id,
+                            session_name_param: 'CBE Career Chat'
+                        });
+
+                        if (sessionError) {
+                            console.error('Session error:', sessionError);
+                        } else {
+                            currentSessionId = sessionData;
+                        }
+                    }
+
+                    // Save conversation
+                    await supabase
+                        .from('chat_conversations')
+                        .insert({
+                            user_id: currentUser.id,
+                            session_id: currentSessionId,
+                            message: message,
+                            response: null,
+                            language: currentLanguage
+                        });
+                }
+
+                // Get AI response using backend API
+                const response = await generateAIResponse(message);
+
+                // Hide creation loading indicator
+                hideCreationLoadingIndicator();
+
+                // Add AI response
+                addMessage(response, 'ai');
+
+                // Update conversation in database
+                if (currentUser && currentSessionId) {
+                    await supabase
+                        .from('chat_conversations')
+                        .update({ response: response })
+                        .eq('user_id', currentUser.id)
+                        .eq('session_id', currentSessionId)
+                        .eq('message', message)
+                        .order('timestamp', { ascending: false })
+                        .limit(1);
+
+                    // Update session last message time
+                    await supabase
+                        .from('chat_sessions')
+                        .update({
+                            last_message_at: new Date().toISOString(),
+                            total_messages: supabase.raw('total_messages + 1')
+                        })
+                        .eq('id', currentSessionId);
+                }
+
+            } catch (error) {
+                console.error('Chat error:', error);
+                hideCreationLoadingIndicator();
+            } finally {
+                sendButton.disabled = false;
+            }
+        }
+
+        function addMessage(text, sender, customTime = null) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${sender}`;
+
+            const now = customTime || new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-${sender === 'user' ? 'user' : 'robot'}"></i>
+                </div>
+                <div class="message-bubble">
+                    ${text}
+                    <div class="message-time">${timeString}</div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showCreationLoadingIndicator() {
+            console.log('Showing creation loading indicator...');
+            
+            const indicator = document.getElementById('thinkingIndicator');
+            const thinkingDiv = document.querySelector('.thinking-indicator');
+            
+            // Make sure the indicator is visible
+            indicator.style.display = 'flex';
+            thinkingDiv.style.display = 'flex';
+            
+            // Reset creation message index
+            currentCreationIndex = 0;
+            
+            // Set initial message
+            updateCreationMessage();
+            
+            // Start cycling through creation messages
+            creationInterval = setInterval(() => {
+                updateCreationMessage();
+                currentCreationIndex = (currentCreationIndex + 1) % creationMessages[currentLanguage].length;
+            }, 2000); // Change message every 2 seconds
+
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function updateCreationMessage() {
+            const messages = creationMessages[currentLanguage];
+            const creationText = document.getElementById('creationText');
+            const textSpan = creationText.querySelector('span');
+            
+            if (textSpan) {
+                textSpan.textContent = messages[currentCreationIndex];
+            } else {
+                // Fallback - update the text directly
+                creationText.innerHTML = `<span data-en="${messages[currentCreationIndex]}" data-sw="${messages[currentCreationIndex]}">${messages[currentCreationIndex]}</span>`;
+            }
+        }
+
+        function hideCreationLoadingIndicator() {
+            console.log('Hiding creation loading indicator...');
+            
+            const indicator = document.getElementById('thinkingIndicator');
+            const thinkingDiv = document.querySelector('.thinking-indicator');
+            
+            indicator.style.display = 'none';
+            thinkingDiv.style.display = 'none';
+            
+            // Clear the creation message interval
+            if (creationInterval) {
+                clearInterval(creationInterval);
+                creationInterval = null;
+            }
+        }
+
+        // Legacy thinking indicator functions for compatibility
+        function showThinkingIndicator() {
+            showCreationLoadingIndicator();
+        }
+
+        function hideThinkingIndicator() {
+            hideCreationLoadingIndicator();
+        }
+
+        // AI Response Generator using Backend API
+        async function generateAIResponse(message) {
+            try {
+                console.log('Calling backend API for message:', message);
+
+                // Call backend API
+                const response = await fetch('http://127.0.0.1:8000/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        language: currentLanguage
+                    })
+                });
+
+                console.log('Backend response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`Backend error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Backend response received:', data.response.substring(0, 100) + '...');
+
+                return data.response;
+
+            } catch (error) {
+                console.error('Backend API error:', error);
+
+                // Show specific error message
+                if (error.message.includes('Failed to fetch')) {
+                    return "❌ Cannot connect to chat service. Please make sure the backend is running at http://127.0.0.1:8000";
+                } else if (error.message.includes('405')) {
+                    return "❌ Method not allowed. Please check the backend endpoint configuration.";
+                } else {
+                    return `❌ Chat service error: ${error.message}. Please try again.`;
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>     

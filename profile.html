@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - CBE Career Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #5D5CDE;
+            --secondary: #FF6B35;
+            --accent: #4ECDC4;
+            --success: #45B7D1;
+            --code-champ-blue: #5D5CDE;
+            --code-champ-green: #10B981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e6efff 50%, #f0f8ff 100%);
+            min-height: 100vh;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .gradient-code-champ {
+            background: linear-gradient(135deg, var(--code-champ-blue) 0%, var(--code-champ-green) 100%);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            opacity: 0.9;
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .profile-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-header {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pathway-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .pathway-option:hover {
+            transform: scale(1.02);
+        }
+
+        .pathway-option.selected {
+            border-color: var(--primary) !important;
+            background-color: rgba(93, 92, 222, 0.1) !important;
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .footer {
+            background-color: #212529;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin: 15px 0;
+        }
+
+        .small-chart {
+            height: 150px;
+        }
+
+        .mini-chart {
+            height: 100px;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            stroke-dasharray: 251.2;
+            stroke-dashoffset: 251.2;
+            transition: stroke-dashoffset 0.35s;
+        }
+
+        .activity-chart {
+            background: linear-gradient(135deg, rgba(93, 92, 222, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .skills-radar {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .achievement-progress {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.5;
+            margin-bottom: 1rem;
+        }
+
+        .kenya-flag {
+            background: linear-gradient(to bottom, #000000 33.33%, #CE1126 33.33%, #CE1126 66.66%, #006B3F 66.66%);
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+        }
+
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top border-bottom">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <div class="gradient-code-champ rounded-3 me-3 p-2 shadow">
+                    <i class="fas fa-graduation-cap text-white fs-5"></i>
+                </div>
+                <div>
+                    <span class="fw-bold fs-4 text-primary">CBE Career Guide</span>
+                    <div class="small text-muted d-none d-sm-block">
+                        <div class="kenya-flag d-inline-block me-2"></div>
+                        <span data-en="Ministry of Education Kenya" data-sw="Wizara ya Elimu Kenya">Ministry of Education Kenya</span>
+                    </div>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="chat.html">
+                            <i class="fas fa-comments me-2"></i>
+                            <span data-en="AI Chat" data-sw="Mazungumzo ya AI">AI Chat</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="assessment.html">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            <span data-en="Assessment" data-sw="Tathmini">Assessment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pathways.html">
+                            <i class="fas fa-route me-2"></i>
+                            <span data-en="Pathways" data-sw="Njia">Pathways</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="careers.html">
+                            <i class="fas fa-briefcase me-2"></i>
+                            <span data-en="Careers" data-sw="Kazi">Careers</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="scenarios.html">
+                            <i class="fas fa-gamepad me-2"></i>
+                            <span data-en="Scenarios" data-sw="Hali">Scenarios</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="resources.html">
+                            <i class="fas fa-book me-2"></i>
+                            <span data-en="Resources" data-sw="Rasilimali">Resources</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center">
+                    <select id="languageSelect" onchange="changeLanguage()" class="form-select form-select-sm me-3"
+                        style="width: auto;">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="sw">🇰🇪 Kiswahili</option>
+                    </select>
+
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button"
+                            data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>
+                            <span id="userName">Student</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item active" href="profile.html">
+                                    <i class="fas fa-user me-2"></i>Profile
+                                </a></li>
+                            <li><a class="dropdown-item" href="dashboard.html">
+                                    <i class="fas fa-chart-line me-2"></i>Dashboard
+                                </a></li>
+                            <li><a class="dropdown-item" href="history.html">
+                                    <i class="fas fa-history me-2"></i>History
+                                </a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="signOut()">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                                </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="mainContent" class="container py-4 d-none">
+
+        <!-- Profile Header -->
+        <div class="mb-4">
+            <div class="card profile-card rounded-4 overflow-hidden">
+                <div class="profile-header gradient-bg text-white p-4 p-md-5 position-relative">
+                    <div class="position-relative">
+                        <div class="row align-items-center">
+                            <!-- Profile Picture -->
+                            <div class="col-md-3 text-center text-md-start mb-3 mb-md-0">
+                                <div class="position-relative d-inline-block">
+                                    <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center floating-animation"
+                                        style="width: 96px; height: 96px;">
+                                        <i class="fas fa-user text-white fs-1" id="profileIcon"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Profile Info -->
+                            <div class="col-md-6 text-center text-md-start">
+                                <h1 class="h2 fw-bold mb-2" id="profileName">
+                                    <span data-en="Student Profile" data-sw="Wasifu wa Mwanafunzi">Student Profile</span>
+                                </h1>
+                                <p class="opacity-90 mb-3" id="profileSubtitle">
+                                    <span data-en="Exploring CBE Career Pathways" data-sw="Kuchunguza Njia za Kazi za CBE">Exploring CBE Career Pathways</span>
+                                </p>
+
+                                <!-- Quick Stats -->
+                                <div class="row g-2 text-center">
+                                    <div class="col-4">
+                                        <div class="bg-white bg-opacity-20 rounded-3 p-2 stat-card">
+                                            <div class="small opacity-75">
+                                                <span data-en="Level" data-sw="Kiwango">Level</span>
+                                            </div>
+                                            <div class="fw-bold" id="headerUserLevel">1</div>
+                                            <div class="mt-1">
+                                                <div style="height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px;">
+                                                    <div id="headerLevelBar" style="height: 100%; background: white; border-radius: 2px; width: 0%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="bg-white bg-opacity-20 rounded-3 p-2 stat-card">
+                                            <div class="small opacity-75">
+                                                <span data-en="XP Points" data-sw="Alama za XP">XP Points</span>
+                                            </div>
+                                            <div class="fw-bold" id="headerUserXP">0</div>
+                                            <div class="mt-1">
+                                                <i class="fas fa-arrow-up small" style="color: #4ade80;"></i>
+                                                <span class="small" id="xpGain">+0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="bg-white bg-opacity-20 rounded-3 p-2 stat-card">
+                                            <div class="small opacity-75">
+                                                <span data-en="Joined" data-sw="Alijiunge">Joined</span>
+                                            </div>
+                                            <div class="fw-bold" id="joinDate">2025</div>
+                                            <div class="mt-1">
+                                                <span class="small" id="activeDays">0 days</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="col-md-3 text-center text-md-end">
+                                <div class="d-flex flex-column gap-2">
+                                    <a href="dashboard.html" class="btn btn-light">
+                                        <i class="fas fa-chart-line me-2"></i>
+                                        <span data-en="View Progress" data-sw="Ona Maendeleo">View Progress</span>
+                                    </a>
+                                    <button onclick="exportProfile()" class="btn btn-outline-light">
+                                        <i class="fas fa-download me-2"></i>
+                                        <span data-en="Export Profile" data-sw="Hamisha Wasifu">Export Profile</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="row g-4">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+
+                <!-- Personal Information -->
+                <div class="card profile-card rounded-4 mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="fw-bold mb-0">
+                                <span data-en="Personal Information" data-sw="Maelezo ya Kibinafsi">Personal Information</span>
+                            </h3>
+                            <button onclick="editPersonalInfo()" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-edit me-1"></i>
+                                <span data-en="Edit" data-sw="Hariri">Edit</span>
+                            </button>
+                        </div>
+
+                        <form id="personalInfoForm" onsubmit="savePersonalInfo(event)">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">
+                                        <span data-en="Full Name" data-sw="Jina Kamili">Full Name</span>
+                                    </label>
+                                    <input type="text" id="fullName" class="form-control" disabled placeholder="Enter your full name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">
+                                        <span data-en="Email Address" data-sw="Barua Pepe">Email Address</span>
+                                    </label>
+                                    <input type="email" id="email" class="form-control bg-light" disabled readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">
+                                        <span data-en="School/Institution" data-sw="Shule/Taasisi">School/Institution</span>
+                                    </label>
+                                    <input type="text" id="school" class="form-control" disabled placeholder="Enter your school name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">
+                                        <span data-en="Current Grade" data-sw="Darasa la Sasa">Current Grade</span>
+                                    </label>
+                                    <select id="grade" class="form-select" disabled>
+                                        <option value="">Select Grade</option>
+                                        <option value="Grade 7">Grade 7</option>
+                                        <option value="Grade 8">Grade 8</option>
+                                        <option value="Grade 9">Grade 9</option>
+                                        <option value="Grade 10">Grade 10</option>
+                                        <option value="Grade 11">Grade 11</option>
+                                        <option value="Grade 12">Grade 12</option>
+                                        <option value="University">University</option>
+                                        <option value="Graduate">Graduate</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">
+                                        <span data-en="County" data-sw="Kaunti">County</span>
+                                    </label>
+                                    <select id="county" class="form-select" disabled>
+                                        <option value="">Select County</option>
+                                        <option value="Nairobi">Nairobi</option>
+                                        <option value="Mombasa">Mombasa</option>
+                                        <option value="Kiambu">Kiambu</option>
+                                        <option value="Nakuru">Nakuru</option>
+                                        <option value="Machakos">Machakos</option>
+                                        <option value="Kakamega">Kakamega</option>
+                                        <option value="Meru">Meru</option>
+                                        <option value="Kisumu">Kisumu</option>
+                                        <option value="Eldoret">Eldoret</option>
+                                        <option value="Nyeri">Nyeri</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">
+                                        <span data-en="Phone Number" data-sw="Namba ya Simu">Phone Number</span>
+                                    </label>
+                                    <input type="tel" id="phone" class="form-control" disabled placeholder="Enter your phone number">
+                                </div>
+                            </div>
+
+                            <div id="editButtons" class="d-none mt-4 text-end">
+                                <button type="button" onclick="cancelEdit()" class="btn btn-outline-secondary me-2">
+                                    <span data-en="Cancel" data-sw="Ghairi">Cancel</span>
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <span data-en="Save Changes" data-sw="Hifadhi Mabadiliko">Save Changes</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Career Preferences -->
+                <div class="card profile-card rounded-4 mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="fw-bold mb-0">
+                                <span data-en="Career Preferences" data-sw="Mapendeleo ya Kazi">Career Preferences</span>
+                            </h3>
+                            <button onclick="updatePreferences()" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-sync me-1"></i>
+                                <span data-en="Update" data-sw="Sasisha">Update</span>
+                            </button>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <!-- Preferred Pathway -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium mb-3">
+                                        <span data-en="Preferred CBE Pathway" data-sw="Njia ya CBE Unayopendelea">Preferred CBE Pathway</span>
+                                    </label>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <input type="radio" id="stem" name="pathway" value="STEM" class="d-none">
+                                            <label for="stem" class="pathway-option card border-2 p-3 w-100 d-flex align-items-center">
+                                                <div class="bg-primary bg-opacity-10 rounded-3 p-2 me-3">
+                                                    <i class="fas fa-flask text-primary"></i>
+                                                </div>
+                                                <span class="fw-medium">STEM</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="radio" id="social" name="pathway" value="Social Sciences" class="d-none">
+                                            <label for="social" class="pathway-option card border-2 p-3 w-100 d-flex align-items-center">
+                                                <div class="bg-success bg-opacity-10 rounded-3 p-2 me-3">
+                                                    <i class="fas fa-users text-success"></i>
+                                                </div>
+                                                <span class="fw-medium">Social Sciences</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="radio" id="arts" name="pathway" value="Arts & Sports" class="d-none">
+                                            <label for="arts" class="pathway-option card border-2 p-3 w-100 d-flex align-items-center">
+                                                <div class="bg-info bg-opacity-10 rounded-3 p-2 me-3">
+                                                    <i class="fas fa-palette text-info"></i>
+                                                </div>
+                                                <span class="fw-medium">Arts & Sports</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="radio" id="technical" name="pathway" value="Technical" class="d-none">
+                                            <label for="technical" class="pathway-option card border-2 p-3 w-100 d-flex align-items-center">
+                                                <div class="bg-warning bg-opacity-10 rounded-3 p-2 me-3">
+                                                    <i class="fas fa-tools text-warning"></i>
+                                                </div>
+                                                <span class="fw-medium">Technical</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Career Interests -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium mb-3">
+                                        <span data-en="Career Interests" data-sw="Maslahi ya Kazi">Career Interests</span>
+                                    </label>
+                                    <div id="careerInterests" class="d-flex flex-wrap gap-2">
+                                        <div class="empty-state">
+                                            <i class="fas fa-heart"></i>
+                                            <p><span data-en="Complete an assessment to discover your interests" data-sw="Kamilisha tathmini ili kugundua maslahi yako">Complete an assessment to discover your interests</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Future Goals -->
+                                <div>
+                                    <label class="form-label fw-medium">
+                                        <span data-en="Future Goals" data-sw="Malengo ya Baadaye">Future Goals</span>
+                                    </label>
+                                    <textarea id="futureGoals" rows="4" class="form-control"
+                                        placeholder="Describe your career aspirations and goals..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Skills Profile -->
+                                <div class="skills-radar">
+                                    <h6 class="fw-semibold mb-3">
+                                        <i class="fas fa-star me-2"></i>
+                                        <span data-en="Skills Profile" data-sw="Wasifu wa Ujuzi">Skills Profile</span>
+                                    </h6>
+                                    <div class="chart-container small-chart">
+                                        <canvas id="skillsRadarChart"></canvas>
+                                    </div>
+                                    <div id="skillsEmptyState" class="empty-state">
+                                        <i class="fas fa-chart-radar"></i>
+                                        <p><span data-en="Take assessments to build your skills profile" data-sw="Chukua tathmini kujenga wasifu wako wa ujuzi">Take assessments to build your skills profile</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Settings -->
+                <div class="card profile-card rounded-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h3 class="fw-bold mb-4">
+                            <span data-en="Account Settings" data-sw="Mipangilio ya Akaunti">Account Settings</span>
+                        </h3>
+
+                        <!-- Notification Preferences -->
+                        <div class="mb-4">
+                            <h5 class="fw-semibold mb-3">
+                                <span data-en="Notification Preferences" data-sw="Mapendeleo ya Arifa">Notification Preferences</span>
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="emailNotifications" class="form-check-input" checked>
+                                        <label class="form-check-label" for="emailNotifications">
+                                            <span data-en="Email notifications for new career opportunities"
+                                                data-sw="Arifa za barua pepe kwa fursa mpya za kazi">Email notifications for new career opportunities</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="assessmentReminders" class="form-check-input" checked>
+                                        <label class="form-check-label" for="assessmentReminders">
+                                            <span data-en="Assessment completion reminders"
+                                                data-sw="Vikumbusho vya ukamilishaji wa tathmini">Assessment completion reminders</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="scholarshipAlerts" class="form-check-input">
+                                        <label class="form-check-label" for="scholarshipAlerts">
+                                            <span data-en="Scholarship and funding alerts"
+                                                data-sw="Arifa za ufadhili na ruzuku">Scholarship and funding alerts</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div class="mb-4">
+                            <h5 class="fw-semibold mb-3">
+                                <span data-en="Privacy Settings" data-sw="Mipangilio ya Faragha">Privacy Settings</span>
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="profileVisibility" class="form-check-input">
+                                        <label class="form-check-label" for="profileVisibility">
+                                            <span data-en="Make profile visible to career counselors"
+                                                data-sw="Fanya wasifu uonekane kwa washauri wa kazi">Make profile visible to career counselors</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="dataSharing" class="form-check-input">
+                                        <label class="form-check-label" for="dataSharing">
+                                            <span data-en="Share anonymized data for research purposes"
+                                                data-sw="Shiriki data isiyojulikana kwa madhumuni ya utafiti">Share anonymized data for research purposes</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Actions -->
+                        <div>
+                            <h5 class="fw-semibold mb-3">
+                                <span data-en="Security" data-sw="Usalama">Security</span>
+                            </h5>
+                            <div class="d-flex flex-column flex-md-row gap-3">
+                                <button onclick="changePassword()" class="btn btn-outline-secondary">
+                                    <i class="fas fa-key me-2"></i>
+                                    <span data-en="Change Password" data-sw="Badilisha Nenosiri">Change Password</span>
+                                </button>
+                                <button onclick="showDeleteAccountModal()" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash me-2"></i>
+                                    <span data-en="Delete Account" data-sw="Futa Akaunti">Delete Account</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column with Charts -->
+            <div class="col-lg-4">
+
+                <!-- Progress Overview -->
+                <div class="card profile-card rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-4">
+                            <span data-en="Progress Overview" data-sw="Muhtasari wa Maendeleo">Progress Overview</span>
+                        </h4>
+
+                        <!-- Level Progress Ring -->
+                        <div class="text-center mb-4">
+                            <div class="position-relative d-inline-block">
+                                <svg class="progress-ring" width="120" height="120">
+                                    <circle class="progress-ring-circle" stroke="#e6efff" stroke-width="8" fill="transparent" r="40" cx="60" cy="60"/>
+                                    <circle class="progress-ring-circle" stroke="url(#gradient)" stroke-width="8" fill="transparent" r="40" cx="60" cy="60" id="levelRing"/>
+                                    <defs>
+                                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color:var(--primary);stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:var(--accent);stop-opacity:1" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                    <div class="fw-bold fs-5 text-primary" id="userLevel">1</div>
+                                    <div class="small text-muted">Level</div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <div class="small text-muted">
+                                    <span id="userXP">0</span> XP • <span id="xpToNext">100 XP to Level 2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Activity Chart -->
+                        <div class="activity-chart mb-4">
+                            <h6 class="fw-semibold mb-3">
+                                <i class="fas fa-chart-line me-2"></i>
+                                <span data-en="Weekly Activity" data-sw="Shughuli za Wiki">Weekly Activity</span>
+                            </h6>
+                            <div class="chart-container small-chart">
+                                <canvas id="weeklyActivityChart"></canvas>
+                            </div>
+                            <div id="activityEmptyState" class="empty-state">
+                                <i class="fas fa-chart-line"></i>
+                                <p><span data-en="Start exploring to see your activity" data-sw="Anza kuchunguza kuona shughuli zako">Start exploring to see your activity</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Completion Stats -->
+                        <div class="row g-3 text-center">
+                            <div class="col-6">
+                                <div class="bg-primary bg-opacity-10 rounded-3 p-3 stat-card">
+                                    <div class="h4 mb-1 text-primary" id="assessmentsCompleted">0</div>
+                                    <div class="small text-muted">
+                                        <span data-en="Assessments" data-sw="Tathmini">Assessments</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-info bg-opacity-10 rounded-3 p-3 stat-card">
+                                    <div class="h4 mb-1 text-info" id="scenariosCompleted">0</div>
+                                    <div class="small text-muted">
+                                        <span data-en="Scenarios" data-sw="Hali">Scenarios</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-warning bg-opacity-10 rounded-3 p-3 stat-card">
+                                    <div class="h4 mb-1 text-warning" id="careersExplored">0</div>
+                                    <div class="small text-muted">
+                                        <span data-en="Careers" data-sw="Kazi">Careers</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-success bg-opacity-10 rounded-3 p-3 stat-card">
+                                    <div class="h4 mb-1 text-success" id="resourcesViewed">0</div>
+                                    <div class="small text-muted">
+                                        <span data-en="Resources" data-sw="Rasilimali">Resources</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Achievements -->
+                <div class="card profile-card rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-4">
+                            <span data-en="Recent Achievements" data-sw="Mafanikio ya Hivi Karibuni">Recent Achievements</span>
+                        </h4>
+
+                        <div id="recentAchievements">
+                            <div class="empty-state">
+                                <i class="fas fa-trophy"></i>
+                                <p><span data-en="Complete activities to earn achievements" data-sw="Kamilisha shughuli ili kupata mafanikio">Complete activities to earn achievements</span></p>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <a href="dashboard.html" class="btn btn-outline-primary btn-sm w-100">
+                                <span data-en="View All Achievements" data-sw="Ona Mafanikio Yote">View All Achievements</span>
+                                <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card profile-card rounded-4">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-4">
+                            <span data-en="Quick Actions" data-sw="Vitendo vya Haraka">Quick Actions</span>
+                        </h4>
+
+                        <div class="d-grid gap-3">
+                            <a href="assessment.html" class="btn btn-primary">
+                                <i class="fas fa-clipboard-list me-2"></i>
+                                <span data-en="Take Assessment" data-sw="Chukua Tathmini">Take Assessment</span>
+                            </a>
+
+                            <a href="careers.html" class="btn btn-info">
+                                <i class="fas fa-briefcase me-2"></i>
+                                <span data-en="Explore Careers" data-sw="Chunguza Kazi">Explore Careers</span>
+                            </a>
+
+                            <a href="chat.html" class="btn btn-success">
+                                <i class="fas fa-comments me-2"></i>
+                                <span data-en="AI Counselor" data-sw="Mshauri wa AI">AI Counselor</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="passwordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">
+                        <span data-en="Change Password" data-sw="Badilisha Nenosiri">Change Password</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="passwordForm" onsubmit="updatePassword(event)">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <span data-en="Current Password" data-sw="Nenosiri la Sasa">Current Password</span>
+                            </label>
+                            <input type="password" id="currentPassword" required class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <span data-en="New Password" data-sw="Nenosiri Jipya">New Password</span>
+                            </label>
+                            <input type="password" id="newPassword" required minlength="6" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <span data-en="Confirm New Password" data-sw="Thibitisha Nenosiri Jipya">Confirm New Password</span>
+                            </label>
+                            <input type="password" id="confirmPassword" required minlength="6" class="form-control">
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                <span data-en="Cancel" data-sw="Ghairi">Cancel</span>
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <span data-en="Update Password" data-sw="Sasisha Nenosiri">Update Password</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-5">
+                    <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                        style="width: 64px; height: 64px;">
+                        <i class="fas fa-exclamation-triangle text-danger fs-4"></i>
+                    </div>
+                    <h2 class="fw-bold mb-3">
+                        <span data-en="Delete Account" data-sw="Futa Akaunti">Delete Account</span>
+                    </h2>
+                    <p class="text-muted mb-4">
+                        <span
+                            data-en="Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently lost."
+                            data-sw="Una uhakika unataka kufuta akaunti yako? Kitendo hiki hakiwezi kubatilishwa na data yako yote itapotea kabisa.">
+                            Are you sure you want to delete your account? This action cannot be undone and all your data
+                            will be permanently lost.
+                        </span>
+                    </p>
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <span data-en="Cancel" data-sw="Ghairi">Cancel</span>
+                        </button>
+                        <button onclick="deleteAccount()" class="btn btn-danger">
+                            <span data-en="Delete Account" data-sw="Futa Akaunti">Delete Account</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <p class="mb-0 small text-light-emphasis">
+                        © 2025 CBE Career Guide. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 small fw-medium">
+                        Developed by <span class="text-warning fw-bold">Code Champ</span> 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://vxoiunxiaxhxhpbajjgl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4b2l1bnhpYXhoeGhwYmFqamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNTIzMjQsImV4cCI6MjA3MjgyODMyNH0.wR7ANQfYOKaQg1sh6067TX9u9p5dtwoM8FsfmiwztPk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let userProfile = null;
+        let userStats = {
+            assessments: 0,
+            scenarios: 0,
+            careers: 0,
+            resources: 0,
+            totalActivities: 0,
+            totalXP: 0,
+            level: 1,
+            weeklyActivity: Array(7).fill(0)
+        };
+        let isEditing = false;
+        let weeklyChart = null;
+        let skillsChart = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAuthState();
+            initializeLanguage();
+        });
+
+        function initializeLanguage() {
+            const languageSelect = document.getElementById('languageSelect');
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+            languageSelect.value = savedLanguage;
+            changeLanguage();
+        }
+
+        async function checkAuthState() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    
+                    // Load all data
+                    await loadUserProfile();
+                    await loadUserStats();
+                    await loadUserPathwayPreferences();
+                    await loadRecentAchievements();
+                    
+                    // Initialize charts after data is loaded
+                    initializeCharts();
+                    
+                    // Hide loading, show content
+                    document.getElementById('loadingState').classList.add('d-none');
+                    document.getElementById('mainContent').classList.remove('d-none');
+                    
+                    // Log profile visit
+                    await logActivity('profile_visit', { page: 'profile' });
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function loadUserProfile() {
+            try {
+                // Load user profile data
+                const { data: profile, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (!error && profile) {
+                    userProfile = profile;
+                    populateProfileForm(profile);
+                } else {
+                    // Create default profile
+                    await createDefaultProfile();
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                await createDefaultProfile();
+            }
+        }
+
+        async function createDefaultProfile() {
+            const defaultProfile = {
+                user_id: currentUser.id,
+                full_name: currentUser.user_metadata?.full_name || '',
+                email: currentUser.email,
+                school: '',
+                grade: '',
+                county: '',
+                phone_number: '',
+                created_at: new Date().toISOString()
+            };
+
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .insert([defaultProfile]);
+
+                if (!error) {
+                    userProfile = defaultProfile;
+                    populateProfileForm(defaultProfile);
+                }
+            } catch (error) {
+                console.error('Error creating default profile:', error);
+                // Still populate form with basic data
+                populateProfileForm(defaultProfile);
+            }
+        }
+
+        function populateProfileForm(profile) {
+            const displayName = profile.full_name || 'Student';
+            document.getElementById('profileName').textContent = displayName;
+            document.getElementById('userName').textContent = displayName;
+            document.getElementById('fullName').value = profile.full_name || '';
+            document.getElementById('email').value = profile.email || '';
+            document.getElementById('school').value = profile.school || '';
+            document.getElementById('grade').value = profile.grade || '';
+            document.getElementById('county').value = profile.county || '';
+            document.getElementById('phone').value = profile.phone_number || '';
+
+            // Format join date
+            if (profile.created_at) {
+                const date = new Date(profile.created_at);
+                document.getElementById('joinDate').textContent = date.getFullYear();
+                
+                // Calculate active days
+                const today = new Date();
+                const joinDate = new Date(profile.created_at);
+                const activeDays = Math.ceil((today - joinDate) / (1000 * 60 * 60 * 24));
+                document.getElementById('activeDays').textContent = `${activeDays} day${activeDays === 1 ? '' : 's'}`;
+            }
+        }
+
+        async function loadUserStats() {
+            try {
+                // Reset stats
+                userStats = {
+                    assessments: 0,
+                    scenarios: 0,
+                    careers: 0,
+                    resources: 0,
+                    totalActivities: 0,
+                    totalXP: 0,
+                    level: 1,
+                    weeklyActivity: Array(7).fill(0)
+                };
+
+                console.log('Loading user stats...');
+
+                // Load from all tables concurrently with proper error handling
+                const [
+                    assessmentResults,
+                    careerInteractions,
+                    scenariosProgress,
+                    resourceDownloads,
+                    userActivities,
+                    chatConversations
+                ] = await Promise.allSettled([
+                    supabase.from('assessment_results').select('*').eq('user_id', currentUser.id),
+                    supabase.from('career_interactions').select('*').eq('user_id', currentUser.id),
+                    supabase.from('scenarios_progress').select('*').eq('user_id', currentUser.id).eq('completed', true),
+                    supabase.from('resource_downloads').select('*').eq('user_id', currentUser.id),
+                    supabase.from('user_activities').select('*').eq('user_id', currentUser.id),
+                    supabase.from('chat_conversations').select('*').eq('user_id', currentUser.id)
+                ]);
+
+                // Process assessments
+                if (assessmentResults.status === 'fulfilled' && assessmentResults.value.data) {
+                    userStats.assessments = assessmentResults.value.data.length;
+                    console.log(`Assessments: ${userStats.assessments}`);
+                }
+
+                // Process career interactions (count unique careers)
+                if (careerInteractions.status === 'fulfilled' && careerInteractions.value.data) {
+                    const uniqueCareers = new Set(careerInteractions.value.data.map(c => c.career_name));
+                    userStats.careers = uniqueCareers.size;
+                    console.log(`Unique careers: ${userStats.careers}`);
+                }
+
+                // Process scenarios (only completed ones)
+                if (scenariosProgress.status === 'fulfilled' && scenariosProgress.value.data) {
+                    userStats.scenarios = scenariosProgress.value.data.length;
+                    console.log(`Completed scenarios: ${userStats.scenarios}`);
+                }
+
+                // Process resources
+                if (resourceDownloads.status === 'fulfilled' && resourceDownloads.value.data) {
+                    userStats.resources = resourceDownloads.value.data.length;
+                    console.log(`Resources: ${userStats.resources}`);
+                }
+
+                // Calculate XP and level from activities
+                let totalActivityCount = 0;
+                if (userActivities.status === 'fulfilled' && userActivities.value.data) {
+                    totalActivityCount += userActivities.value.data.length;
+                    
+                    // Calculate weekly activity
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    
+                    userActivities.value.data.forEach(activity => {
+                        const activityDate = new Date(activity.timestamp);
+                        if (activityDate >= weekAgo) {
+                            const dayIndex = 6 - Math.floor((new Date() - activityDate) / (1000 * 60 * 60 * 24));
+                            if (dayIndex >= 0 && dayIndex < 7) {
+                                userStats.weeklyActivity[dayIndex]++;
+                            }
+                        }
+                    });
+                }
+
+                // Add chat sessions to activity count
+                if (chatConversations.status === 'fulfilled' && chatConversations.value.data) {
+                    totalActivityCount += Math.ceil(chatConversations.value.data.length / 5); // Group chat messages
+                }
+
+                // Add specific activities to total
+                totalActivityCount += userStats.assessments * 2; // Assessments worth more
+                totalActivityCount += userStats.scenarios;
+                totalActivityCount += userStats.careers;
+                totalActivityCount += userStats.resources;
+
+                userStats.totalActivities = totalActivityCount;
+
+                // Calculate XP (10 points per activity)
+                userStats.totalXP = totalActivityCount * 10;
+                userStats.level = Math.floor(userStats.totalXP / 100) + 1;
+
+                console.log('Final user stats:', userStats);
+
+                // Update UI
+                updateStatsDisplay();
+
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+                updateStatsDisplay(); // Update with default values
+            }
+        }
+
+        function updateStatsDisplay() {
+            // Update all stat displays
+            document.getElementById('assessmentsCompleted').textContent = userStats.assessments;
+            document.getElementById('scenariosCompleted').textContent = userStats.scenarios;
+            document.getElementById('careersExplored').textContent = userStats.careers;
+            document.getElementById('resourcesViewed').textContent = userStats.resources;
+
+            // Update level and XP displays
+            document.getElementById('userLevel').textContent = userStats.level;
+            document.getElementById('headerUserLevel').textContent = userStats.level;
+            document.getElementById('userXP').textContent = userStats.totalXP;
+            document.getElementById('headerUserXP').textContent = userStats.totalXP;
+
+            // Calculate progress to next level
+            const currentLevelXP = userStats.totalXP % 100;
+            const xpToNext = 100 - currentLevelXP;
+            document.getElementById('xpToNext').textContent = `${xpToNext} XP to Level ${userStats.level + 1}`;
+            document.getElementById('xpGain').textContent = `+${Math.min(10, xpToNext)}`;
+
+            // Update progress bars
+            const progressPercent = (currentLevelXP / 100) * 100;
+            document.getElementById('headerLevelBar').style.width = `${progressPercent}%`;
+            
+            // Update circular progress
+            updateCircularProgress(progressPercent);
+        }
+
+        function updateCircularProgress(percent) {
+            const circle = document.getElementById('levelRing');
+            if (circle) {
+                const circumference = 2 * Math.PI * 40; // radius = 40
+                const offset = circumference - (percent / 100) * circumference;
+                circle.style.strokeDasharray = circumference;
+                circle.style.strokeDashoffset = offset;
+            }
+        }
+
+        async function loadUserPathwayPreferences() {
+            try {
+                const { data: preferences, error } = await supabase
+                    .from('pathway_preferences')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('preference_score', { ascending: false })
+                    .limit(1);
+
+                if (!error && preferences && preferences.length > 0) {
+                    const topPreference = preferences[0];
+                    
+                    // Select the pathway radio button
+                    const pathwayMap = {
+                        'STEM': 'stem',
+                        'Social Sciences': 'social',
+                        'Arts & Sports': 'arts',
+                        'Technical': 'technical'
+                    };
+                    
+                    const radioId = pathwayMap[topPreference.pathway_type];
+                    if (radioId) {
+                        const radioElement = document.getElementById(radioId);
+                        const labelElement = document.querySelector(`label[for="${radioId}"]`);
+                        if (radioElement && labelElement) {
+                            radioElement.checked = true;
+                            labelElement.classList.add('selected');
+                        }
+                    }
+
+                    // Display interests if available
+                    if (topPreference.subjects_interested) {
+                        displayCareerInterests(topPreference.subjects_interested);
+                    }
+
+                    // Set career goals
+                    if (topPreference.career_goals) {
+                        document.getElementById('futureGoals').value = topPreference.career_goals;
+                    }
+                } else {
+                    // Try to load interests from assessment results
+                    await loadInterestsFromAssessments();
+                }
+            } catch (error) {
+                console.error('Error loading pathway preferences:', error);
+                await loadInterestsFromAssessments();
+            }
+        }
+
+        async function loadInterestsFromAssessments() {
+            try {
+                const { data: assessments, error } = await supabase
+                    .from('assessment_results')
+                    .select('interests, pathway_recommendation')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                if (!error && assessments && assessments.length > 0) {
+                    const latestAssessment = assessments[0];
+                    
+                    if (latestAssessment.interests) {
+                        displayCareerInterests(latestAssessment.interests);
+                    }
+
+                    // Auto-select pathway based on recommendation
+                    if (latestAssessment.pathway_recommendation) {
+                        const pathwayMap = {
+                            'STEM': 'stem',
+                            'Social Sciences': 'social',
+                            'Arts & Sports': 'arts',
+                            'Technical': 'technical'
+                        };
+                        
+                        const radioId = pathwayMap[latestAssessment.pathway_recommendation];
+                        if (radioId) {
+                            const radioElement = document.getElementById(radioId);
+                            const labelElement = document.querySelector(`label[for="${radioId}"]`);
+                            if (radioElement && labelElement) {
+                                radioElement.checked = true;
+                                labelElement.classList.add('selected');
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading interests from assessments:', error);
+            }
+        }
+
+        function displayCareerInterests(interests) {
+            const container = document.getElementById('careerInterests');
+            if (interests && interests.length > 0) {
+                container.innerHTML = '';
+                interests.forEach(interest => {
+                    const tag = document.createElement('span');
+                    tag.className = 'badge bg-primary bg-opacity-20 text-primary px-3 py-2';
+                    tag.textContent = interest;
+                    container.appendChild(tag);
+                });
+            }
+        }
+
+        function initializeCharts() {
+            initializeWeeklyActivityChart();
+            initializeSkillsRadarChart();
+        }
+
+        function initializeWeeklyActivityChart() {
+            const ctx = document.getElementById('weeklyActivityChart');
+            if (!ctx) return;
+
+            // Check if there's any activity data
+            const hasActivity = userStats.weeklyActivity.some(day => day > 0);
+            
+            if (!hasActivity) {
+                document.getElementById('activityEmptyState').classList.remove('d-none');
+                ctx.style.display = 'none';
+                return;
+            }
+
+            // Show chart, hide empty state
+            document.getElementById('activityEmptyState').classList.add('d-none');
+            ctx.style.display = 'block';
+
+            // Generate last 7 days labels
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString('en', { weekday: 'short' }));
+            }
+
+            if (weeklyChart) {
+                weeklyChart.destroy();
+            }
+
+            weeklyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Activities',
+                        data: userStats.weeklyActivity,
+                        borderColor: '#5D5CDE',
+                        backgroundColor: 'rgba(93, 92, 222, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#5D5CDE',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function initializeSkillsRadarChart() {
+            const ctx = document.getElementById('skillsRadarChart');
+            if (!ctx) return;
+
+            // Check if user has any assessments
+            if (userStats.assessments === 0) {
+                document.getElementById('skillsEmptyState').classList.remove('d-none');
+                ctx.style.display = 'none';
+                return;
+            }
+
+            try {
+                // Get skills data from assessments
+                const { data: assessments, error } = await supabase
+                    .from('assessment_results')
+                    .select('interests, pathway_recommendation')
+                    .eq('user_id', currentUser.id);
+
+                if (error || !assessments || assessments.length === 0) {
+                    document.getElementById('skillsEmptyState').classList.remove('d-none');
+                    ctx.style.display = 'none';
+                    return;
+                }
+
+                // Show chart, hide empty state
+                document.getElementById('skillsEmptyState').classList.add('d-none');
+                ctx.style.display = 'block';
+
+                // Calculate skill scores based on user activity and assessments
+                const skillCategories = ['STEM', 'Arts', 'Social', 'Technical', 'Leadership', 'Communication'];
+                let skillValues = [0, 0, 0, 0, 0, 0];
+
+                // Base scores from assessments
+                assessments.forEach(assessment => {
+                    if (assessment.pathway_recommendation) {
+                        switch (assessment.pathway_recommendation) {
+                            case 'STEM':
+                                skillValues[0] += 40;
+                                skillValues[3] += 20; // Technical
+                                break;
+                            case 'Arts & Sports':
+                                skillValues[1] += 40;
+                                skillValues[2] += 20; // Social
+                                break;
+                            case 'Social Sciences':
+                                skillValues[2] += 40;
+                                skillValues[5] += 20; // Communication
+                                break;
+                            case 'Technical':
+                                skillValues[3] += 40;
+                                skillValues[0] += 20; // STEM
+                                break;
+                        }
+                    }
+
+                    if (assessment.interests) {
+                        assessment.interests.forEach(interest => {
+                            const interestLower = interest.toLowerCase();
+                            if (interestLower.includes('math') || interestLower.includes('science') || interestLower.includes('technology')) {
+                                skillValues[0] += 15; // STEM
+                            } else if (interestLower.includes('art') || interestLower.includes('creative') || interestLower.includes('music')) {
+                                skillValues[1] += 15; // Arts
+                            } else if (interestLower.includes('social') || interestLower.includes('history') || interestLower.includes('language')) {
+                                skillValues[2] += 15; // Social
+                            } else if (interestLower.includes('technical') || interestLower.includes('engineering') || interestLower.includes('building')) {
+                                skillValues[3] += 15; // Technical
+                            }
+                        });
+                    }
+                });
+
+                // Add activity-based scores
+                skillValues[4] = Math.min(userStats.assessments * 20 + userStats.scenarios * 10, 100); // Leadership
+                skillValues[5] = Math.min(userStats.careers * 15 + userStats.assessments * 10, 100); // Communication
+
+                // Normalize to 0-100 range
+                skillValues = skillValues.map(value => Math.min(value, 100));
+
+                if (skillsChart) {
+                    skillsChart.destroy();
+                }
+
+                skillsChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: skillCategories,
+                        datasets: [{
+                            label: 'Skills',
+                            data: skillValues,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            pointBackgroundColor: '#10B981',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(0,0,0,0.1)'
+                                },
+                                pointLabels: {
+                                    font: {
+                                        size: 10
+                                    }
+                                },
+                                ticks: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading skills data:', error);
+                document.getElementById('skillsEmptyState').classList.remove('d-none');
+                ctx.style.display = 'none';
+            }
+        }
+
+        async function loadRecentAchievements() {
+            try {
+                const { data: achievements, error } = await supabase
+                    .from('user_achievements')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('earned_at', { ascending: false })
+                    .limit(3);
+
+                const container = document.getElementById('recentAchievements');
+
+                if (!error && achievements && achievements.length > 0) {
+                    container.innerHTML = achievements.map(achievement => `
+                        <div class="d-flex align-items-center p-3 bg-light rounded-3 mb-3">
+                            <div class="bg-white rounded-3 p-2 me-3">
+                                <i class="fas fa-trophy text-warning"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-medium">${achievement.achievement_name}</div>
+                                <div class="small text-muted">${achievement.achievement_description}</div>
+                                <div class="small text-success mt-1">
+                                    <i class="fas fa-check me-1"></i>Earned ${new Date(achievement.earned_at).toLocaleDateString()}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    // Show empty state
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-trophy"></i>
+                            <p><span data-en="Complete activities to earn achievements" data-sw="Kamilisha shughuli ili kupata mafanikio">Complete activities to earn achievements</span></p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading achievements:', error);
+                // Show empty state on error
+                document.getElementById('recentAchievements').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-trophy"></i>
+                        <p><span data-en="Complete activities to earn achievements" data-sw="Kamilisha shughuli ili kupata mafanikio">Complete activities to earn achievements</span></p>
+                    </div>
+                `;
+            }
+        }
+
+        function editPersonalInfo() {
+            isEditing = true;
+            const inputs = ['fullName', 'school', 'grade', 'county', 'phone'];
+            inputs.forEach(id => {
+                document.getElementById(id).disabled = false;
+            });
+            document.getElementById('editButtons').classList.remove('d-none');
+        }
+
+        function cancelEdit() {
+            isEditing = false;
+            const inputs = ['fullName', 'school', 'grade', 'county', 'phone'];
+            inputs.forEach(id => {
+                document.getElementById(id).disabled = true;
+            });
+            document.getElementById('editButtons').classList.add('d-none');
+
+            // Restore original values
+            if (userProfile) {
+                populateProfileForm(userProfile);
+            }
+        }
+
+        async function savePersonalInfo(event) {
+            event.preventDefault();
+
+            const updatedProfile = {
+                full_name: document.getElementById('fullName').value,
+                school: document.getElementById('school').value,
+                grade: document.getElementById('grade').value,
+                county: document.getElementById('county').value,
+                phone_number: document.getElementById('phone').value,
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                const { error } = await supabase
+                    .from('user_profiles')
+                    .update(updatedProfile)
+                    .eq('user_id', currentUser.id);
+
+                if (error) throw error;
+
+                userProfile = { ...userProfile, ...updatedProfile };
+                cancelEdit();
+                showSuccessMessage('Profile updated successfully!');
+
+                // Update display name
+                document.getElementById('profileName').textContent = updatedProfile.full_name || 'Student';
+                document.getElementById('userName').textContent = updatedProfile.full_name || 'Student';
+
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showErrorMessage('Failed to update profile');
+            }
+        }
+
+        async function updatePreferences() {
+            try {
+                const selectedPathway = document.querySelector('input[name="pathway"]:checked');
+                const futureGoals = document.getElementById('futureGoals').value;
+
+                if (selectedPathway || futureGoals) {
+                    const preferences = {
+                        user_id: currentUser.id,
+                        pathway_type: selectedPathway ? selectedPathway.value : null,
+                        career_goals: futureGoals,
+                        preference_score: 100,
+                        updated_at: new Date().toISOString()
+                    };
+
+                    const { error } = await supabase
+                        .from('pathway_preferences')
+                        .upsert([preferences], { onConflict: 'user_id' });
+
+                    if (error) throw error;
+
+                    showSuccessMessage('Preferences updated successfully!');
+                } else {
+                    showSuccessMessage('Please select a pathway or add career goals to update preferences.');
+                }
+            } catch (error) {
+                console.error('Error updating preferences:', error);
+                showErrorMessage('Failed to update preferences');
+            }
+        }
+
+        function changePassword() {
+            const modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+            modal.show();
+        }
+
+        async function updatePassword(event) {
+            event.preventDefault();
+
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showErrorMessage('New passwords do not match');
+                return;
+            }
+
+            try {
+                const { error } = await supabase.auth.updateUser({
+                    password: newPassword
+                });
+
+                if (error) throw error;
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+                modal.hide();
+                
+                // Clear form
+                document.getElementById('passwordForm').reset();
+                
+                showSuccessMessage('Password updated successfully!');
+
+            } catch (error) {
+                console.error('Error updating password:', error);
+                showErrorMessage('Failed to update password');
+            }
+        }
+
+        function showDeleteAccountModal() {
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        async function deleteAccount() {
+            try {
+                // Note: This will only mark for deletion - actual deletion should be handled server-side
+                showSuccessMessage('Account deletion request submitted. You will be contacted within 24 hours.');
+                
+                // Sign out user
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error('Error requesting account deletion:', error);
+                showErrorMessage('Failed to submit deletion request');
+            }
+        }
+
+        function exportProfile() {
+            if (!userProfile) {
+                showErrorMessage('No profile data to export');
+                return;
+            }
+
+            const profileData = {
+                user_info: {
+                    name: userProfile.full_name,
+                    email: userProfile.email,
+                    school: userProfile.school,
+                    grade: userProfile.grade,
+                    county: userProfile.county,
+                    joined: userProfile.created_at
+                },
+                stats: userStats,
+                export_date: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(profileData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `cbe_profile_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showSuccessMessage('Profile exported successfully!');
+        }
+
+        async function logActivity(activityType, activityData = {}) {
+            if (!currentUser) return;
+
+            try {
+                await supabase
+                    .from('user_activities')
+                    .insert([
+                        {
+                            user_id: currentUser.id,
+                            activity_type: activityType,
+                            activity_data: activityData,
+                            page_visited: window.location.pathname,
+                            session_id: currentUser.id + '_' + Date.now()
+                        }
+                    ]);
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
+        }
+
+        async function signOut() {
+            try {
+                await logActivity('sign_out', { page: 'profile' });
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        function changeLanguage() {
+            const select = document.getElementById('languageSelect');
+            const currentLanguage = select.value;
+            localStorage.setItem('selectedLanguage', currentLanguage);
+
+            document.querySelectorAll('[data-en]').forEach(element => {
+                if (currentLanguage === 'en') {
+                    element.textContent = element.getAttribute('data-en');
+                } else {
+                    element.textContent = element.getAttribute('data-sw');
+                }
+            });
+        }
+
+        // Pathway selection handling
+        document.addEventListener('change', function(event) {
+            if (event.target.name === 'pathway') {
+                // Remove selected class from all pathway options
+                document.querySelectorAll('.pathway-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                // Add selected class to chosen option
+                if (event.target.checked) {
+                    event.target.nextElementSibling.classList.add('selected');
+                }
+            }
+        });
+
+        function showSuccessMessage(message) {
+            showToast(message, 'success', 'fas fa-check-circle');
+        }
+
+        function showErrorMessage(message) {
+            showToast(message, 'danger', 'fas fa-exclamation-circle');
+        }
+
+        function showToast(message, type, icon) {
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '1050';
+            toastContainer.innerHTML = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="${icon} me-2"></i>${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toastContainer);
+
+            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+            toast.show();
+
+            setTimeout(() => {
+                toastContainer.remove();
+            }, 5000);
+        }
+    </script>
+
+</body>
+
+</html>

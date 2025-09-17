@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity History - CBE Career Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #6366F1;
+            --secondary: #F59E0B;
+            --accent: #10B981;
+            --success: #059669;
+            --info: #0EA5E9;
+            --warning: #F59E0B;
+            --danger: #DC2626;
+            --kenya-black: #000000;
+            --kenya-red: #CE1126;
+            --kenya-green: #006B3F;
+            --kenya-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(59, 130, 246, 0.1) 100%);
+            min-height: 100vh;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .gradient-kenya {
+            background: linear-gradient(135deg, var(--kenya-green) 0%, var(--kenya-red) 50%, var(--kenya-black) 100%);
+        }
+
+        .navbar {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-card {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .history-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+        }
+
+        .activity-item {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .activity-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.15);
+        }
+
+        .activity-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-icon.assessment {
+            background: linear-gradient(135deg, var(--info) 0%, #3B82F6 100%);
+            color: white;
+        }
+
+        .activity-icon.chat {
+            background: linear-gradient(135deg, var(--accent) 0%, #14B8A6 100%);
+            color: white;
+        }
+
+        .activity-icon.career {
+            background: linear-gradient(135deg, var(--warning) 0%, #F97316 100%);
+            color: white;
+        }
+
+        .activity-icon.scenario {
+            background: linear-gradient(135deg, var(--danger) 0%, #EF4444 100%);
+            color: white;
+        }
+
+        .activity-icon.resource {
+            background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 100%);
+            color: white;
+        }
+
+        .activity-icon.dashboard {
+            background: linear-gradient(135deg, var(--success) 0%, #10B981 100%);
+            color: white;
+        }
+
+        .filter-card {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: -2rem;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 1rem;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        .timeline-item:last-child::before {
+            display: none;
+        }
+
+        .stats-overview {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5B21B6 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .kenya-flag {
+            background: linear-gradient(to bottom, #000000 33.33%, #CE1126 33.33%, #CE1126 66.66%, #006B3F 66.66%);
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .debug-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top border-bottom">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <div class="gradient-kenya rounded-3 me-3 p-2 shadow">
+                    <i class="fas fa-graduation-cap text-white fs-5"></i>
+                </div>
+                <div>
+                    <span class="fw-bold fs-4 text-primary">CBE Career Guide</span>
+                    <div class="small text-muted d-none d-sm-block">
+                        <div class="kenya-flag d-inline-block me-2"></div>
+                        <span data-en="Ministry of Education Kenya" data-sw="Wizara ya Elimu Kenya">Ministry of
+                            Education Kenya</span>
+                    </div>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="chat.html">
+                            <i class="fas fa-comments me-2"></i>AI Chat
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="assessment.html">
+                            <i class="fas fa-clipboard-list me-2"></i>Assessment
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pathways.html">
+                            <i class="fas fa-route me-2"></i>Pathways
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="careers.html">
+                            <i class="fas fa-briefcase me-2"></i>Careers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="scenarios.html">
+                            <i class="fas fa-gamepad me-2"></i>Scenarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="resources.html">
+                            <i class="fas fa-book me-2"></i>Resources
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center">
+                    <select id="languageSelect" onchange="changeLanguage()" class="form-select form-select-sm me-3"
+                        style="width: auto;">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="sw">🇰🇪 Kiswahili</option>
+                    </select>
+
+                    <div id="authSection">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button"
+                                data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>
+                                <span id="userName">Student</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="profile.html">
+                                        <i class="fas fa-user me-2"></i>Profile
+                                    </a></li>
+                                <li><a class="dropdown-item" href="dashboard.html">
+                                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                                    </a></li>
+                                <li><a class="dropdown-item active" href="history.html">
+                                        <i class="fas fa-history me-2"></i>History
+                                    </a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="signOut()">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                                    </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container py-4">
+
+        <!-- Page Header -->
+        <div class="text-center mb-5">
+            <div class="history-card p-4 p-md-5">
+                <div class="floating-animation d-inline-block mb-3">
+                    <i class="fas fa-history text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <h1 class="display-5 fw-bold mb-3">
+                    <span data-en="Activity History" data-sw="Historia ya Shughuli">Activity History</span>
+                </h1>
+                <p class="lead text-muted">
+                    <span data-en="Track your learning journey and career exploration progress"
+                        data-sw="Fuatilia safari yako ya kujifunza na maendeleo ya uchunguzi wa kazi">Track your
+                        learning journey and career exploration progress</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-overview fade-in">
+            <h3 class="fw-bold mb-4 text-center">
+                <span data-en="Your Progress Overview" data-sw="Muhtasari wa Maendeleo Yako">Your Progress
+                    Overview</span>
+            </h3>
+            <div class="row g-4">
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-clipboard-list text-info fs-2 mb-2"></i>
+                        <h4 class="text-primary mb-1" id="totalAssessments">0</h4>
+                        <small class="text-muted">
+                            <span data-en="Assessments" data-sw="Tathmini">Assessments</span>
+                        </small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-comments text-success fs-2 mb-2"></i>
+                        <h4 class="text-primary mb-1" id="totalChats">0</h4>
+                        <small class="text-muted">
+                            <span data-en="AI Chats" data-sw="Mazungumzo ya AI">AI Chats</span>
+                        </small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-briefcase text-warning fs-2 mb-2"></i>
+                        <h4 class="text-primary mb-1" id="totalCareers">0</h4>
+                        <small class="text-muted">
+                            <span data-en="Careers Explored" data-sw="Kazi Zilichunguzwa">Careers Explored</span>
+                        </small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <i class="fas fa-gamepad text-danger fs-2 mb-2"></i>
+                        <h4 class="text-primary mb-1" id="totalScenarios">0</h4>
+                        <small class="text-muted">
+                            <span data-en="Scenarios Completed" data-sw="Hali Zilizokamilika">Scenarios Completed</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Filters -->
+            <div class="col-lg-4">
+                <div class="filter-card p-4">
+                    <h4 class="fw-bold mb-4">
+                        <i class="fas fa-filter me-2 text-primary"></i>
+                        <span data-en="Filter Activities" data-sw="Chuja Shughuli">Filter Activities</span>
+                    </h4>
+
+                    <!-- Date Range -->
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">
+                            <span data-en="Date Range" data-sw="Kipindi cha Tarehe">Date Range</span>
+                        </label>
+                        <select id="dateFilter" class="form-select" onchange="filterActivities()">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+
+                    <!-- Activity Type -->
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">
+                            <span data-en="Activity Type" data-sw="Aina ya Shughuli">Activity Type</span>
+                        </label>
+                        <select id="typeFilter" class="form-select" onchange="filterActivities()">
+                            <option value="all">All Activities</option>
+                            <option value="assessment">Assessments</option>
+                            <option value="chat">AI Chats</option>
+                            <option value="career">Career Explorations</option>
+                            <option value="scenario">Scenarios</option>
+                            <option value="resource">Resources</option>
+                            <option value="dashboard">Dashboard Views</option>
+                        </select>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">
+                            <span data-en="Search" data-sw="Tafuta">Search</span>
+                        </label>
+                        <input type="text" id="searchFilter" class="form-control" placeholder="Search activities..."
+                            oninput="filterActivities()">
+                    </div>
+
+                    <!-- Export Options -->
+                    <div class="d-grid gap-2">
+                        <button onclick="exportHistory()" class="btn btn-outline-primary">
+                            <i class="fas fa-download me-2"></i>
+                            <span data-en="Export History" data-sw="Hamisha Historia">Export History</span>
+                        </button>
+                        <button onclick="refreshData()" class="btn btn-outline-success">
+                            <i class="fas fa-sync me-2"></i>
+                            <span data-en="Refresh Data" data-sw="Onyesha Upya Data">Refresh Data</span>
+                        </button>
+                        <button onclick="testScenarioQuery()" class="btn btn-outline-info">
+                            <i class="fas fa-search me-2"></i>
+                            Debug Scenarios
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Timeline -->
+            <div class="col-lg-8">
+                <div class="history-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">
+                            <i class="fas fa-timeline me-2 text-primary"></i>
+                            <span data-en="Activity Timeline" data-sw="Ratiba ya Shughuli">Activity Timeline</span>
+                        </h4>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary active"
+                                onclick="toggleView('timeline')">
+                                <i class="fas fa-list me-1"></i>Timeline
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" onclick="toggleView('grid')">
+                                <i class="fas fa-th me-1"></i>Grid
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
+                    <!-- Timeline View -->
+                    <div id="timelineView" class="timeline-container d-none">
+                        <div id="activitiesList">
+                            <!-- Activities will be populated by JavaScript -->
+                        </div>
+
+                        <!-- Load More Button -->
+                        <div class="text-center mt-4">
+                            <button id="loadMoreBtn" onclick="loadMoreActivities()" class="btn btn-outline-primary d-none">
+                                <i class="fas fa-plus me-2"></i>
+                                <span data-en="Load More" data-sw="Pakia Zaidi">Load More</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Grid View -->
+                    <div id="gridView" class="d-none">
+                        <div id="activitiesGrid" class="row g-3">
+                            <!-- Grid items will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- No Activities Message -->
+                    <div id="noActivitiesMessage" class="empty-state d-none">
+                        <i class="fas fa-history text-muted"></i>
+                        <h5 class="text-muted mt-3">
+                            <span data-en="No activities found" data-sw="Hakuna shughuli zilizopatikana">No activities found</span>
+                        </h5>
+                        <p class="text-muted">
+                            <span data-en="Start exploring careers and taking assessments to see your activity history here." 
+                                  data-sw="Anza kuchunguza kazi na kufanya tathmini kuona historia ya shughuli zako hapa.">
+                                  Start exploring careers and taking assessments to see your activity history here.
+                            </span>
+                        </p>
+                        <div class="mt-4">
+                            <a href="assessment.html" class="btn btn-primary me-2">
+                                <i class="fas fa-clipboard-list me-2"></i>Take Assessment
+                            </a>
+                            <a href="careers.html" class="btn btn-outline-primary">
+                                <i class="fas fa-briefcase me-2"></i>Explore Careers
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Activity Detail Modal -->
+    <div class="modal fade" id="activityModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">
+                        <span data-en="Activity Details" data-sw="Maelezo ya Shughuli">Activity Details</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="activityModalContent">
+                    <!-- Activity details will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Panel (Hidden by default) -->
+    <div id="debugPanel" class="d-none position-fixed bottom-0 start-0 debug-panel text-white p-3 rounded-top-end" style="z-index: 1000; max-width: 400px;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Debug Info:</h6>
+            <button onclick="toggleDebug()" class="btn btn-sm btn-outline-light">×</button>
+        </div>
+        <div id="debugInfo">
+            <div>Total Activities: <span id="debugActivities">0</span></div>
+            <div>Raw Activities: <span id="debugRawActivities">0</span></div>
+            <div>Assessments: <span id="debugAssessments">0</span> | Raw: <span id="debugRawAssessments">0</span></div>
+            <div>Scenarios: <span id="debugScenarios">0</span> | Raw: <span id="debugRawScenarios">0</span></div>
+            <div>Careers: <span id="debugCareers">0</span> | Raw: <span id="debugRawCareers">0</span></div>
+            <div>Chats: <span id="debugChats">0</span> | Raw: <span id="debugRawChats">0</span></div>
+            <div>Resources: <span id="debugResources">0</span> | Raw: <span id="debugRawResources">0</span></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <p class="mb-0 small text-light-emphasis">
+                        © 2025 CBE Career Guide. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 small fw-medium">
+                        Developed by <span class="text-warning fw-bold">Code Champ</span> 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://vxoiunxiaxhxhpbajjgl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4b2l1bnhpYXhoeGhwYmFqamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNTIzMjQsImV4cCI6MjA3MjgyODMyNH0.wR7ANQfYOKaQg1sh6067TX9u9p5dtwoM8FsfmiwztPk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Initialize state variables
+        let currentUser = null;
+        let allActivities = [];
+        let filteredActivities = [];
+        let displayedActivities = 0;
+        let activityStats = {
+            assessment: 0,
+            chat: 0,
+            career: 0,
+            scenario: 0,
+            resource: 0,
+            dashboard: 0
+        };
+        
+        // Raw data counters for debugging
+        let rawDataCounts = {
+            user_activities: 0,
+            assessment_results: 0,
+            career_interactions: 0,
+            chat_conversations: 0,
+            scenarios_progress: 0,
+            resource_downloads: 0
+        };
+
+        const activitiesPerPage = 15;
+        let currentView = 'timeline';
+        let isLoading = false;
+        let debugMode = false;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAuthState();
+            initializeLanguage();
+            
+            // Enable debug mode with double-click on page title
+            document.querySelector('h1').addEventListener('dblclick', () => {
+                debugMode = !debugMode;
+                toggleDebug();
+            });
+        });
+
+        async function checkAuthState() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    await loadUserProfile();
+                    await loadUserActivities();
+                    await logActivity('history_visit', { page: 'history' });
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function loadUserProfile() {
+            try {
+                const { data: profile, error } = await supabase
+                    .from('user_profiles')
+                    .select('full_name')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                const name = profile?.full_name || currentUser.user_metadata?.full_name || 'Student';
+                document.getElementById('userName').textContent = name;
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+            }
+        }
+
+        async function loadUserActivities() {
+            if (isLoading) return;
+            isLoading = true;
+
+            try {
+                showLoadingSpinner(true);
+                
+                // Initialize empty arrays
+                allActivities = [];
+                
+                // Reset statistics and raw counts
+                activityStats = {
+                    assessment: 0,
+                    chat: 0,
+                    career: 0,
+                    scenario: 0,
+                    resource: 0,
+                    dashboard: 0
+                };
+
+                rawDataCounts = {
+                    user_activities: 0,
+                    assessment_results: 0,
+                    career_interactions: 0,
+                    chat_conversations: 0,
+                    scenarios_progress: 0,
+                    resource_downloads: 0
+                };
+
+                // Load activities from all database tables and count them properly
+                await loadAssessmentActivities();      
+                await loadCareerActivities();          
+                await loadChatActivities();            
+                await loadScenarioActivitiesEnhanced();  // Enhanced version     
+                await loadResourceActivities();        
+                await loadUserGeneralActivities();     
+
+                // Sort all activities by timestamp (newest first)
+                allActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                console.log('=== FINAL RESULTS ===');
+                console.log('Final activity stats:', activityStats);
+                console.log('Raw data counts:', rawDataCounts);
+                console.log('Total activities loaded:', allActivities.length);
+                console.log('Scenario activities:', allActivities.filter(a => a.type === 'scenario'));
+
+                // Update statistics display
+                updateActivityStats();
+                updateDebugInfo();
+
+                // Initialize display
+                filteredActivities = [...allActivities];
+                displayedActivities = 0;
+                showLoadingSpinner(false);
+
+                if (allActivities.length === 0) {
+                    showNoActivitiesMessage();
+                } else {
+                    hideNoActivitiesMessage();
+                    displayActivities();
+                }
+
+            } catch (error) {
+                console.error('Error loading user activities:', error);
+                showErrorMessage('Failed to load activity history. Please try again.');
+                showLoadingSpinner(false);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        async function loadScenarioActivitiesEnhanced() {
+            try {
+                console.log('=== LOADING SCENARIOS ===');
+                console.log('Current user:', currentUser?.id);
+
+                const { data, error } = await supabase
+                    .from('scenarios_progress')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                console.log('Scenario query result:', { data, error });
+
+                if (error) throw error;
+
+                rawDataCounts.scenarios_progress = data ? data.length : 0;
+                console.log(`Raw scenario records found: ${rawDataCounts.scenarios_progress}`);
+
+                if (data && data.length > 0) {
+                    console.log('Processing scenario data:', data);
+                    
+                    // Track unique completed scenarios to avoid double counting
+                    const completedScenarios = new Set();
+                    
+                    data.forEach(scenario => {
+                        console.log('Processing scenario record:', scenario);
+                        
+                        const isCompleted = scenario.completed === true;
+                        const useTimestamp = isCompleted && scenario.completed_at ? scenario.completed_at : scenario.created_at;
+                        
+                        // Get question count for score calculation
+                        const questionCount = getQuestionCount(scenario.scenario_id);
+                        const scorePercentage = scenario.score ? Math.round((scenario.score / questionCount) * 100) : 0;
+                        
+                        // Always add activity for each record (both started and completed)
+                        const activityRecord = {
+                            id: `scenario_${scenario.id}`,
+                            type: 'scenario',
+                            title: isCompleted ? 'Scenario Completed' : 'Scenario Started',
+                            description: `${scenario.scenario_name || 'Unnamed Scenario'} - ${isCompleted ? `Score: ${scenario.score || 0}/${questionCount} (${scorePercentage}%)` : 'In Progress'}`,
+                            timestamp: useTimestamp,
+                            data: {
+                                scenario_name: scenario.scenario_name,
+                                scenario_id: scenario.scenario_id,
+                                completed: isCompleted,
+                                score: scenario.score,
+                                total_questions: questionCount,
+                                score_percentage: scorePercentage,
+                                progress_data: scenario.progress_data,
+                                time_taken: scenario.progress_data?.time_taken_minutes || 0
+                            },
+                            source: 'scenarios_progress'
+                        };
+                        
+                        console.log('Adding scenario activity:', activityRecord);
+                        allActivities.push(activityRecord);
+                        
+                        // Count completed scenarios only, avoid double counting same scenario
+                        if (isCompleted && scenario.scenario_id) {
+                            completedScenarios.add(scenario.scenario_id);
+                            console.log('Added completed scenario:', scenario.scenario_id);
+                        }
+                    });
+                    
+                    // Set the count to unique completed scenarios
+                    activityStats.scenario = completedScenarios.size;
+                    console.log(`Final completed scenarios count: ${activityStats.scenario}`);
+                    console.log('Completed scenario IDs:', Array.from(completedScenarios));
+                } else {
+                    console.log('No scenario data found');
+                }
+            } catch (error) {
+                console.error('Error loading scenario activities:', error);
+            }
+        }
+
+        // Helper function to get question count for scenarios
+        function getQuestionCount(scenarioId) {
+            const questionCounts = {
+                'engineering': 5,
+                'healthcare': 5,
+                'business': 5,
+                'teaching': 5,
+                'agriculture': 5,
+                'arts': 5
+            };
+            return questionCounts[scenarioId] || 5;
+        }
+
+        // Debug function to test scenario queries
+        async function testScenarioQuery() {
+            if (!currentUser) {
+                alert('No user logged in');
+                return;
+            }
+
+            console.log('=== DEBUGGING SCENARIO QUERY ===');
+            
+            try {
+                // Test the raw query
+                const { data, error } = await supabase
+                    .from('scenarios_progress')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+
+                console.log('Raw query result:', { data, error });
+                
+                if (data) {
+                    console.log('Found records:', data.length);
+                    data.forEach((record, index) => {
+                        console.log(`Record ${index + 1}:`, record);
+                    });
+                }
+
+                // Show alert with results
+                const message = `Found ${data?.length || 0} scenario records.\nCheck console for details.`;
+                alert(message);
+
+            } catch (error) {
+                console.error('Test query error:', error);
+                alert('Error testing scenario query: ' + error.message);
+            }
+        }
+
+        async function loadAssessmentActivities() {
+            try {
+                const { data, error } = await supabase
+                    .from('assessment_results')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                rawDataCounts.assessment_results = data ? data.length : 0;
+                console.log(`Loaded ${rawDataCounts.assessment_results} assessments`);
+
+                if (data && data.length > 0) {
+                    data.forEach(assessment => {
+                        allActivities.push({
+                            id: `assessment_${assessment.id}`,
+                            type: 'assessment',
+                            title: 'Career Assessment Completed',
+                            description: `Recommended pathway: ${assessment.pathway_recommendation || 'Not specified'} (Score: ${assessment.score || 0})`,
+                            timestamp: assessment.created_at,
+                            data: {
+                                pathway: assessment.pathway_recommendation,
+                                score: assessment.score,
+                                interests: assessment.interests,
+                                environment: assessment.environment_preference,
+                                assessment_type: assessment.assessment_type
+                            },
+                            source: 'assessment_results'
+                        });
+                        activityStats.assessment++;
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading assessment activities:', error);
+            }
+        }
+
+        async function loadCareerActivities() {
+            try {
+                const { data, error } = await supabase
+                    .from('career_interactions')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('timestamp', { ascending: false });
+
+                if (error) throw error;
+
+                rawDataCounts.career_interactions = data ? data.length : 0;
+                console.log(`Loaded ${rawDataCounts.career_interactions} career interactions`);
+
+                if (data && data.length > 0) {
+                    // Group by career name to count unique careers
+                    const uniqueCareers = new Set();
+                    
+                    data.forEach(interaction => {
+                        allActivities.push({
+                            id: `career_${interaction.id}`,
+                            type: 'career',
+                            title: 'Career Explored',
+                            description: `Viewed details for ${interaction.career_name || 'Unknown Career'} ${interaction.pathway ? `in ${interaction.pathway} pathway` : ''}`,
+                            timestamp: interaction.timestamp,
+                            data: {
+                                career_name: interaction.career_name,
+                                pathway: interaction.pathway,
+                                interaction_type: interaction.interaction_type,
+                                interaction_data: interaction.interaction_data
+                            },
+                            source: 'career_interactions'
+                        });
+                        
+                        if (interaction.career_name) {
+                            uniqueCareers.add(interaction.career_name);
+                        }
+                    });
+                    
+                    activityStats.career = uniqueCareers.size;
+                    console.log(`Unique careers explored: ${activityStats.career}`);
+                }
+            } catch (error) {
+                console.error('Error loading career activities:', error);
+            }
+        }
+
+        async function loadChatActivities() {
+            try {
+                const { data, error } = await supabase
+                    .from('chat_conversations')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('timestamp', { ascending: false });
+
+                if (error) throw error;
+
+                rawDataCounts.chat_conversations = data ? data.length : 0;
+                console.log(`Loaded ${rawDataCounts.chat_conversations} chat messages`);
+
+                if (data && data.length > 0) {
+                    // Group by day to count chat sessions
+                    const chatSessions = {};
+                    data.forEach(chat => {
+                        const dateKey = new Date(chat.timestamp).toDateString();
+                        if (!chatSessions[dateKey]) {
+                            chatSessions[dateKey] = {
+                                count: 0,
+                                timestamp: chat.timestamp,
+                                messages: []
+                            };
+                        }
+                        chatSessions[dateKey].count++;
+                        if (chat.message) {
+                            chatSessions[dateKey].messages.push(chat.message);
+                        }
+                    });
+
+                    Object.entries(chatSessions).forEach(([date, session]) => {
+                        allActivities.push({
+                            id: `chat_${date.replace(/\s/g, '_')}`,
+                            type: 'chat',
+                            title: 'AI Chat Session',
+                            description: `Had ${session.count} message exchange${session.count > 1 ? 's' : ''} with AI counselor`,
+                            timestamp: session.timestamp,
+                            data: {
+                                message_count: session.count,
+                                sample_messages: session.messages.slice(0, 3),
+                                date: date
+                            },
+                            source: 'chat_conversations'
+                        });
+                        activityStats.chat++;
+                    });
+                    
+                    console.log(`Chat sessions created: ${activityStats.chat}`);
+                }
+            } catch (error) {
+                console.error('Error loading chat activities:', error);
+            }
+        }
+
+        async function loadResourceActivities() {
+            try {
+                const { data, error } = await supabase
+                    .from('resource_downloads')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('last_downloaded', { ascending: false });
+
+                if (error) throw error;
+
+                rawDataCounts.resource_downloads = data ? data.length : 0;
+                console.log(`Loaded ${rawDataCounts.resource_downloads} resource downloads`);
+
+                if (data && data.length > 0) {
+                    data.forEach(resource => {
+                        allActivities.push({
+                            id: `resource_${resource.id}`,
+                            type: 'resource',
+                            title: 'Resource Accessed',
+                            description: `Downloaded/viewed ${resource.resource_name || 'Unknown Resource'} ${resource.download_count > 1 ? `(${resource.download_count} times)` : ''}`,
+                            timestamp: resource.last_downloaded,
+                            data: {
+                                resource_name: resource.resource_name,
+                                resource_type: resource.resource_type,
+                                resource_url: resource.resource_url,
+                                download_count: resource.download_count
+                            },
+                            source: 'resource_downloads'
+                        });
+                        activityStats.resource++;
+                    });
+                    
+                    console.log(`Resource activities: ${activityStats.resource}`);
+                }
+            } catch (error) {
+                console.error('Error loading resource activities:', error);
+            }
+        }
+
+        async function loadUserGeneralActivities() {
+            try {
+                const { data, error } = await supabase
+                    .from('user_activities')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('timestamp', { ascending: false });
+
+                if (error) throw error;
+
+                rawDataCounts.user_activities = data ? data.length : 0;
+                console.log(`Loaded ${rawDataCounts.user_activities} general activities`);
+
+                if (data && data.length > 0) {
+                    data.forEach(activity => {
+                        const mappedType = mapActivityType(activity.activity_type);
+                        
+                        // Only add general activities that aren't already covered by specific tables
+                        if (mappedType === 'dashboard' || 
+                            (mappedType === 'assessment' && !activity.activity_data?.assessment_id) ||
+                            (mappedType === 'career' && !activity.activity_data?.career_name) ||
+                            (mappedType === 'scenario' && !activity.activity_data?.scenario_id) ||
+                            (mappedType === 'chat' && activity.activity_type === 'chat_message') ||
+                            (mappedType === 'resource' && !activity.activity_data?.resource_name)) {
+                            
+                            allActivities.push({
+                                id: `activity_${activity.id}`,
+                                type: mappedType,
+                                title: formatActivityTitle(activity.activity_type, activity.activity_data),
+                                description: formatActivityDescription(activity.activity_type, activity.activity_data),
+                                timestamp: activity.timestamp,
+                                data: activity.activity_data || {},
+                                source: 'user_activities'
+                            });
+
+                            // Only count dashboard activities from user_activities table
+                            if (mappedType === 'dashboard') {
+                                activityStats.dashboard++;
+                            }
+                        }
+                    });
+                    
+                    console.log(`Dashboard activities: ${activityStats.dashboard}`);
+                }
+            } catch (error) {
+                console.error('Error loading general activities:', error);
+            }
+        }
+
+        function mapActivityType(activityType) {
+            const typeMap = {
+                'assessment_started': 'assessment',
+                'assessment_completed': 'assessment',
+                'chat_message': 'chat',
+                'career_view': 'career',
+                'career_interaction': 'career',
+                'scenario_start': 'scenario',
+                'scenario_complete': 'scenario',
+                'scenario_completed': 'scenario',
+                'scenario_started': 'scenario',
+                'dashboard_visit': 'dashboard',
+                'history_visit': 'dashboard',
+                'profile_visit': 'dashboard',
+                'resource_download': 'resource',
+                'resource_view': 'resource'
+            };
+            return typeMap[activityType] || 'dashboard';
+        }
+
+        function formatActivityTitle(activityType, activityData) {
+            const titles = {
+                'assessment_started': 'Assessment Started',
+                'assessment_completed': 'Assessment Completed',
+                'chat_message': 'AI Chat Session',
+                'career_view': 'Career Viewed',
+                'career_interaction': 'Career Explored',
+                'scenario_start': 'Scenario Started',
+                'scenario_complete': 'Scenario Completed',
+                'scenario_completed': 'Scenario Completed',
+                'scenario_started': 'Scenario Started',
+                'dashboard_visit': 'Dashboard Visited',
+                'history_visit': 'History Viewed',
+                'profile_visit': 'Profile Viewed',
+                'resource_download': 'Resource Downloaded',
+                'resource_view': 'Resource Viewed',
+                'sign_out': 'Session Ended'
+            };
+            return titles[activityType] || 'Platform Activity';
+        }
+
+        function formatActivityDescription(activityType, activityData) {
+            if (!activityData) return 'User activity on the platform';
+
+            switch (activityType) {
+                case 'assessment_completed':
+                    return `Completed career assessment${activityData.pathway ? ` - ${activityData.pathway} recommended` : ''}`;
+                case 'career_view':
+                case 'career_interaction':
+                    return `Explored ${activityData.career_name || 'career'} information`;
+                case 'chat_message':
+                    return 'Engaged with AI counselor for career guidance';
+                case 'dashboard_visit':
+                    return 'Viewed dashboard and progress statistics';
+                case 'history_visit':
+                    return 'Reviewed activity history';
+                case 'profile_visit':
+                    return 'Viewed user profile';
+                case 'scenario_complete':
+                case 'scenario_completed':
+                    return `Completed scenario${activityData.score ? ` with score of ${activityData.score}` : ''}`;
+                case 'scenario_start':
+                case 'scenario_started':
+                    return `Started ${activityData.scenario_name || 'new scenario'}`;
+                case 'resource_download':
+                case 'resource_view':
+                    return `Accessed ${activityData.resource_name || 'learning resource'}`;
+                default:
+                    return activityData.description || 'User activity on the platform';
+            }
+        }
+
+        function updateActivityStats() {
+            console.log('Updating activity stats display:', activityStats);
+            
+            // Update UI elements
+            document.getElementById('totalAssessments').textContent = activityStats.assessment || 0;
+            document.getElementById('totalChats').textContent = activityStats.chat || 0;
+            document.getElementById('totalCareers').textContent = activityStats.career || 0;
+            document.getElementById('totalScenarios').textContent = activityStats.scenario || 0;
+        }
+
+        function updateDebugInfo() {
+            if (debugMode) {
+                document.getElementById('debugActivities').textContent = allActivities.length;
+                document.getElementById('debugRawActivities').textContent = rawDataCounts.user_activities;
+                document.getElementById('debugAssessments').textContent = activityStats.assessment;
+                document.getElementById('debugRawAssessments').textContent = rawDataCounts.assessment_results;
+                document.getElementById('debugScenarios').textContent = activityStats.scenario;
+                document.getElementById('debugRawScenarios').textContent = rawDataCounts.scenarios_progress;
+                document.getElementById('debugCareers').textContent = activityStats.career;
+                document.getElementById('debugRawCareers').textContent = rawDataCounts.career_interactions;
+                document.getElementById('debugChats').textContent = activityStats.chat;
+                document.getElementById('debugRawChats').textContent = rawDataCounts.chat_conversations;
+                document.getElementById('debugResources').textContent = activityStats.resource;
+                document.getElementById('debugRawResources').textContent = rawDataCounts.resource_downloads;
+            }
+        }
+
+        function toggleDebug() {
+            const panel = document.getElementById('debugPanel');
+            if (debugMode) {
+                panel.classList.remove('d-none');
+                updateDebugInfo();
+            } else {
+                panel.classList.add('d-none');
+            }
+        }
+
+        function showLoadingSpinner(show) {
+            const spinner = document.getElementById('loadingSpinner');
+            const timelineView = document.getElementById('timelineView');
+            const noActivitiesMessage = document.getElementById('noActivitiesMessage');
+
+            if (show) {
+                spinner.classList.remove('d-none');
+                timelineView.classList.add('d-none');
+                noActivitiesMessage.classList.add('d-none');
+            } else {
+                spinner.classList.add('d-none');
+            }
+        }
+
+        function showNoActivitiesMessage() {
+            document.getElementById('noActivitiesMessage').classList.remove('d-none');
+            document.getElementById('timelineView').classList.add('d-none');
+            document.getElementById('gridView').classList.add('d-none');
+        }
+
+        function hideNoActivitiesMessage() {
+            document.getElementById('noActivitiesMessage').classList.add('d-none');
+            if (currentView === 'timeline') {
+                document.getElementById('timelineView').classList.remove('d-none');
+            } else {
+                document.getElementById('gridView').classList.remove('d-none');
+            }
+        }
+
+        function displayActivities() {
+            const container = document.getElementById('activitiesList');
+            const startIndex = displayedActivities;
+            const endIndex = Math.min(startIndex + activitiesPerPage, filteredActivities.length);
+
+            if (startIndex === 0) {
+                container.innerHTML = '';
+            }
+
+            for (let i = startIndex; i < endIndex; i++) {
+                const activity = filteredActivities[i];
+                const activityElement = createActivityElement(activity);
+                container.appendChild(activityElement);
+            }
+
+            displayedActivities = endIndex;
+
+            // Show/hide load more button
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            if (displayedActivities >= filteredActivities.length) {
+                loadMoreBtn.classList.add('d-none');
+            } else {
+                loadMoreBtn.classList.remove('d-none');
+            }
+        }
+
+        function createActivityElement(activity) {
+            const div = document.createElement('div');
+            div.className = 'timeline-item fade-in';
+
+            const iconClass = getActivityIcon(activity.type);
+            const timeAgo = getTimeAgo(activity.timestamp);
+
+            div.innerHTML = `
+                <div class="activity-item" onclick="showActivityDetails('${activity.id}')">
+                    <div class="d-flex align-items-start">
+                        <div class="activity-icon ${activity.type}">
+                            <i class="${iconClass}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-1">${activity.title}</h6>
+                                <small class="text-muted">${timeAgo}</small>
+                            </div>
+                            <p class="text-muted mb-2">${activity.description}</p>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-${getActivityColor(activity.type)} bg-opacity-20 text-${getActivityColor(activity.type)} me-2">
+                                    ${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
+                                </span>
+                                ${activity.data.score_percentage ? `<span class="small text-success"><i class="fas fa-star me-1"></i>${activity.data.score_percentage}%</span>` : ''}
+                                ${activity.data.score && !activity.data.score_percentage ? `<span class="small text-success"><i class="fas fa-star me-1"></i>${activity.data.score}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return div;
+        }
+
+        function getActivityIcon(type) {
+            const icons = {
+                assessment: 'fas fa-clipboard-list',
+                chat: 'fas fa-comments',
+                career: 'fas fa-briefcase',
+                scenario: 'fas fa-gamepad',
+                resource: 'fas fa-book',
+                dashboard: 'fas fa-chart-line'
+            };
+            return icons[type] || 'fas fa-circle';
+        }
+
+        function getActivityColor(type) {
+            const colors = {
+                assessment: 'info',
+                chat: 'success',
+                career: 'warning',
+                scenario: 'danger',
+                resource: 'primary',
+                dashboard: 'secondary'
+            };
+            return colors[type] || 'secondary';
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const time = new Date(timestamp);
+            const diffMs = now - time;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+            return time.toLocaleDateString();
+        }
+
+        function filterActivities() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+
+            filteredActivities = allActivities.filter(activity => {
+                // Date filter
+                if (dateFilter !== 'all') {
+                    const activityDate = new Date(activity.timestamp);
+                    const now = new Date();
+
+                    switch (dateFilter) {
+                        case 'today':
+                            if (activityDate.toDateString() !== now.toDateString()) return false;
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            if (activityDate < weekAgo) return false;
+                            break;
+                        case 'month':
+                            if (activityDate.getMonth() !== now.getMonth() || activityDate.getFullYear() !== now.getFullYear()) return false;
+                            break;
+                        case 'year':
+                            if (activityDate.getFullYear() !== now.getFullYear()) return false;
+                            break;
+                    }
+                }
+
+                // Type filter
+                if (typeFilter !== 'all' && activity.type !== typeFilter) return false;
+
+                // Search filter
+                if (searchFilter && 
+                    !activity.title.toLowerCase().includes(searchFilter) &&
+                    !activity.description.toLowerCase().includes(searchFilter)) return false;
+
+                return true;
+            });
+
+            // Clear and reload activities
+            document.getElementById('activitiesList').innerHTML = '';
+            document.getElementById('activitiesGrid').innerHTML = '';
+            displayedActivities = 0;
+            
+            if (filteredActivities.length === 0) {
+                showNoActivitiesMessage();
+            } else {
+                hideNoActivitiesMessage();
+                displayActivities();
+            }
+        }
+
+        function loadMoreActivities() {
+            displayActivities();
+        }
+
+        function toggleView(view) {
+            currentView = view;
+            const timelineView = document.getElementById('timelineView');
+            const gridView = document.getElementById('gridView');
+            const buttons = document.querySelectorAll('.btn-group button');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            if (view === 'timeline') {
+                timelineView.classList.remove('d-none');
+                gridView.classList.add('d-none');
+                buttons[0].classList.add('active');
+            } else {
+                timelineView.classList.add('d-none');
+                gridView.classList.remove('d-none');
+                buttons[1].classList.add('active');
+                loadGridView();
+            }
+        }
+
+        function loadGridView() {
+            const container = document.getElementById('activitiesGrid');
+            container.innerHTML = '';
+
+            filteredActivities.slice(0, displayedActivities).forEach(activity => {
+                const div = document.createElement('div');
+                div.className = 'col-md-6 col-lg-4';
+                div.innerHTML = `
+                    <div class="activity-item h-100" onclick="showActivityDetails('${activity.id}')">
+                        <div class="text-center">
+                            <div class="activity-icon ${activity.type} mx-auto mb-3">
+                                <i class="${getActivityIcon(activity.type)}"></i>
+                            </div>
+                            <h6 class="fw-bold">${activity.title}</h6>
+                            <p class="small text-muted mb-2">${activity.description}</p>
+                            <span class="badge bg-${getActivityColor(activity.type)}">${activity.type}</span>
+                            <div class="small text-muted mt-2">${getTimeAgo(activity.timestamp)}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function showActivityDetails(activityId) {
+            const activity = allActivities.find(a => a.id === activityId);
+            if (!activity) return;
+
+            const modalContent = document.getElementById('activityModalContent');
+            modalContent.innerHTML = `
+                <div class="text-center mb-4">
+                    <div class="activity-icon ${activity.type} mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                        <i class="${getActivityIcon(activity.type)}"></i>
+                    </div>
+                    <h4 class="fw-bold">${activity.title}</h4>
+                    <p class="text-muted">${new Date(activity.timestamp).toLocaleString()}</p>
+                    <span class="badge bg-${getActivityColor(activity.type)} fs-6">${activity.source.replace('_', ' ')}</span>
+                </div>
+                
+                <div class="card border-0 bg-light mb-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold">Description</h6>
+                        <p class="mb-0">${activity.description}</p>
+                    </div>
+                </div>
+                
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="fw-bold">Activity Data</h6>
+                        <pre class="mb-0 small text-wrap">${JSON.stringify(activity.data, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('activityModal'));
+            modal.show();
+        }
+
+        async function refreshData() {
+            document.getElementById('activitiesList').innerHTML = '';
+            document.getElementById('activitiesGrid').innerHTML = '';
+            await loadUserActivities();
+            showSuccessMessage('Activity data refreshed successfully!');
+        }
+
+        function exportHistory() {
+            if (allActivities.length === 0) {
+                showErrorMessage('No activities to export. Start using the platform to generate activity history.');
+                return;
+            }
+
+            const data = {
+                user: currentUser?.email || 'student',
+                export_date: new Date().toISOString(),
+                total_activities: allActivities.length,
+                statistics: activityStats,
+                raw_data_counts: rawDataCounts,
+                activities: filteredActivities.map(activity => ({
+                    ...activity,
+                    timestamp_formatted: new Date(activity.timestamp).toLocaleString()
+                }))
+            };
+
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `cbe_activity_history_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showSuccessMessage('Activity history exported successfully!');
+        }
+
+        async function logActivity(activityType, activityData = {}) {
+            if (!currentUser) return;
+
+            try {
+                await supabase
+                    .from('user_activities')
+                    .insert([
+                        {
+                            user_id: currentUser.id,
+                            activity_type: activityType,
+                            activity_data: activityData,
+                            page_visited: window.location.pathname,
+                            session_id: currentUser.id + '_' + Date.now()
+                        }
+                    ]);
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
+        }
+
+        async function signOut() {
+            try {
+                await logActivity('sign_out', { page: 'history' });
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        function initializeLanguage() {
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+            document.getElementById('languageSelect').value = savedLanguage;
+            changeLanguage();
+        }
+
+        function changeLanguage() {
+            const select = document.getElementById('languageSelect');
+            const currentLanguage = select.value;
+            localStorage.setItem('selectedLanguage', currentLanguage);
+
+            document.querySelectorAll('[data-en]').forEach(element => {
+                if (currentLanguage === 'en') {
+                    element.textContent = element.getAttribute('data-en');
+                } else {
+                    element.textContent = element.getAttribute('data-sw');
+                }
+            });
+        }
+
+        function showSuccessMessage(message) {
+            showToast(message, 'success', 'fas fa-check-circle');
+        }
+
+        function showErrorMessage(message) {
+            showToast(message, 'danger', 'fas fa-exclamation-circle');
+        }
+
+        function showToast(message, type, icon) {
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed top-0 end-0 p-3';
+            toast.style.zIndex = '1050';
+            toast.innerHTML = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="${icon} me-2"></i>${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+
+            const bsToast = new bootstrap.Toast(toast.querySelector('.toast'));
+            bsToast.show();
+
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // Debug functions accessible from console
+        window.debugData = () => {
+            console.log('Activity Stats:', activityStats);
+            console.log('Raw Data Counts:', rawDataCounts);
+            console.log('All Activities:', allActivities);
+            console.log('Scenario Activities:', allActivities.filter(a => a.type === 'scenario'));
+        };
+
+        window.refreshNow = refreshData;
+    </script>
+
+</body>
+
+</html>

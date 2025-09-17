@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CBE Career Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #6366F1;
+            --secondary: #F59E0B;
+            --accent: #10B981;
+            --success: #059669;
+            --info: #0EA5E9;
+            --warning: #F59E0B;
+            --danger: #DC2626;
+            --kenya-black: #000000;
+            --kenya-red: #CE1126;
+            --kenya-green: #006B3F;
+            --kenya-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e6efff 50%, #f0f8ff 100%);
+            min-height: 100vh;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        .gradient-kenya {
+            background: linear-gradient(135deg, var(--kenya-green) 0%, var(--kenya-red) 50%, var(--kenya-black) 100%);
+        }
+
+        .navbar {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-card {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .metric-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .metric-label {
+            color: #6B7280;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+
+        .progress-ring-bg {
+            stroke: #e5e7eb;
+        }
+
+        .progress-ring-progress {
+            stroke: url(#gradient);
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+
+        .achievement-badge {
+            background: linear-gradient(135deg, var(--warning) 0%, #F97316 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .achievement-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .recommendation-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+        }
+
+        .quick-action {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .quick-action:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #8B5CF6 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5B21B6 0%, var(--primary) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .kenya-flag {
+            background: linear-gradient(to bottom, #000000 33.33%, #CE1126 33.33%, #CE1126 66.66%, #006B3F 66.66%);
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .activity-chart-container {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 15px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 100px;
+            margin: 10px 0;
+        }
+
+        .mini-activity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+        }
+
+        .mini-activity-dot.active {
+            background: var(--primary);
+            transform: scale(1.5);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .weekly-summary {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+            border-radius: 12px;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .activity-stat {
+            display: inline-block;
+            margin: 0 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        #activityChart {
+            max-height: 100px !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.5;
+            margin-bottom: 1rem;
+        }
+
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top border-bottom">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <div class="gradient-kenya rounded-3 me-3 p-2 shadow">
+                    <i class="fas fa-graduation-cap text-white fs-5"></i>
+                </div>
+                <div>
+                    <span class="fw-bold fs-4 text-primary">CBE Career Guide</span>
+                    <div class="small text-muted d-none d-sm-block">
+                        <div class="kenya-flag d-inline-block me-2"></div>
+                        <span data-en="Ministry of Education Kenya" data-sw="Wizara ya Elimu Kenya">Ministry of
+                            Education Kenya</span>
+                    </div>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="chat.html">
+                            <i class="fas fa-comments me-2"></i>AI Chat
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="assessment.html">
+                            <i class="fas fa-clipboard-list me-2"></i>Assessment
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pathways.html">
+                            <i class="fas fa-route me-2"></i>Pathways
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="careers.html">
+                            <i class="fas fa-briefcase me-2"></i>Careers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="scenarios.html">
+                            <i class="fas fa-gamepad me-2"></i>Scenarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="resources.html">
+                            <i class="fas fa-book me-2"></i>Resources
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center">
+                    <select id="languageSelect" onchange="changeLanguage()" class="form-select form-select-sm me-3"
+                        style="width: auto;">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="sw">🇰🇪 Kiswahili</option>
+                    </select>
+
+                    <div id="authSection">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle btn-sm" type="button"
+                                data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>
+                                <span id="userName">Student</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="profile.html">
+                                        <i class="fas fa-user me-2"></i>Profile
+                                    </a></li>
+                                <li><a class="dropdown-item active" href="dashboard.html">
+                                        <i class="fas fa-chart-line me-2"></i>Dashboard
+                                    </a></li>
+                                <li><a class="dropdown-item" href="history.html">
+                                        <i class="fas fa-history me-2"></i>History
+                                    </a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="signOut()">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                                    </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container py-4">
+
+        <!-- Welcome Section -->
+        <div class="text-center mb-5">
+            <div class="dashboard-card p-4 p-md-5 fade-in">
+                <div class="floating-animation d-inline-block mb-3">
+                    <i class="fas fa-chart-line text-primary" style="font-size: 3rem;"></i>
+                </div>
+                <h1 class="display-5 fw-bold mb-3">
+                    <span data-en="Welcome back," data-sw="Karibu tena,">Welcome back,</span>
+                    <span id="welcomeName" class="text-primary">Student</span>!
+                </h1>
+                <p class="lead text-muted">
+                    <span data-en="Track your career exploration progress and discover new opportunities"
+                        data-sw="Fuatilia maendeleo yako ya uchunguzi wa kazi na ugundue fursa mpya">Track your career
+                        exploration progress and discover new opportunities</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboardContent" class="d-none">
+            <!-- Key Metrics -->
+            <div class="row g-4 mb-5">
+                <div class="col-6 col-md-3">
+                    <div class="metric-card fade-in">
+                        <div class="metric-value text-primary" id="totalActivities">0</div>
+                        <div class="metric-label">
+                            <span data-en="Total Activities" data-sw="Jumla ya Shughuli">Total Activities</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card fade-in" style="animation-delay: 0.1s;">
+                        <div class="metric-value text-success" id="assessmentsCompleted">0</div>
+                        <div class="metric-label">
+                            <span data-en="Assessments" data-sw="Tathmini">Assessments</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card fade-in" style="animation-delay: 0.2s;">
+                        <div class="metric-value text-warning" id="careersExplored">0</div>
+                        <div class="metric-label">
+                            <span data-en="Careers Explored" data-sw="Kazi Zilichunguzwa">Careers Explored</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card fade-in" style="animation-delay: 0.3s;">
+                        <div class="metric-value text-info" id="currentLevel">1</div>
+                        <div class="metric-label">
+                            <span data-en="Current Level" data-sw="Kiwango cha Sasa">Current Level</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Progress Overview -->
+                <div class="col-lg-8">
+                    <div class="dashboard-card p-4 mb-4">
+                        <h3 class="fw-bold mb-4">
+                            <i class="fas fa-chart-area me-2 text-primary"></i>
+                            <span data-en="Learning Progress" data-sw="Maendeleo ya Kujifunza">Learning Progress</span>
+                        </h3>
+
+                        <!-- Progress Rings -->
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3 position-relative">
+                                    <svg class="progress-ring pulse-animation">
+                                        <defs>
+                                            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" style="stop-color:#6366F1" />
+                                                <stop offset="100%" style="stop-color:#8B5CF6" />
+                                            </linearGradient>
+                                        </defs>
+                                        <circle class="progress-ring-circle progress-ring-bg" cx="60" cy="60" r="45" />
+                                        <circle class="progress-ring-circle progress-ring-progress" cx="60" cy="60" r="45"
+                                            style="stroke: url(#gradient1); stroke-dashoffset: 283;" />
+                                    </svg>
+                                    <div class="position-absolute"
+                                        style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                        <div class="h4 fw-bold text-primary mb-0" id="overallProgressText">0%</div>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold">
+                                    <span data-en="Overall Progress" data-sw="Maendeleo ya Jumla">Overall Progress</span>
+                                </h6>
+                            </div>
+
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3 position-relative">
+                                    <svg class="progress-ring">
+                                        <defs>
+                                            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" style="stop-color:#10B981" />
+                                                <stop offset="100%" style="stop-color:#14B8A6" />
+                                            </linearGradient>
+                                        </defs>
+                                        <circle class="progress-ring-circle progress-ring-bg" cx="60" cy="60" r="45" />
+                                        <circle class="progress-ring-circle progress-ring-progress" cx="60" cy="60" r="45"
+                                            style="stroke: url(#gradient2); stroke-dashoffset: 283;" />
+                                    </svg>
+                                    <div class="position-absolute"
+                                        style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                        <div class="h4 fw-bold text-success mb-0" id="assessmentProgressText">0%</div>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold">
+                                    <span data-en="Assessment Progress" data-sw="Maendeleo ya Tathmini">Assessment Progress</span>
+                                </h6>
+                            </div>
+
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3 position-relative">
+                                    <svg class="progress-ring">
+                                        <defs>
+                                            <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                <stop offset="0%" style="stop-color:#F59E0B" />
+                                                <stop offset="100%" style="stop-color:#F97316" />
+                                            </linearGradient>
+                                        </defs>
+                                        <circle class="progress-ring-circle progress-ring-bg" cx="60" cy="60" r="45" />
+                                        <circle class="progress-ring-circle progress-ring-progress" cx="60" cy="60" r="45"
+                                            style="stroke: url(#gradient3); stroke-dashoffset: 283;" />
+                                    </svg>
+                                    <div class="position-absolute"
+                                        style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                        <div class="h4 fw-bold text-warning mb-0" id="careerProgressText">0%</div>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold">
+                                    <span data-en="Career Exploration" data-sw="Uchunguzi wa Kazi">Career Exploration</span>
+                                </h6>
+                            </div>
+                        </div>
+
+                        <!-- Activity Chart -->
+                        <div class="activity-chart-container">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    <span data-en="Weekly Activity" data-sw="Shughuli za Kila Wiki">Weekly Activity</span>
+                                </h5>
+                                <small class="text-muted" id="weeklyTotal">0 activities</small>
+                            </div>
+                            
+                            <!-- Chart Container -->
+                            <div class="chart-wrapper">
+                                <canvas id="activityChart"></canvas>
+                            </div>
+                            
+                            <!-- Empty State for Activity -->
+                            <div id="activityEmptyState" class="empty-state d-none">
+                                <i class="fas fa-chart-line"></i>
+                                <p><span data-en="Start exploring to see your activity" data-sw="Anza kuchunguza kuona shughuli zako">Start exploring to see your activity</span></p>
+                            </div>
+                            
+                            <!-- Mini Activity Indicators -->
+                            <div class="d-flex justify-content-between align-items-center mt-2" id="weeklyIndicators">
+                                <div class="text-center">
+                                    <div class="mini-activity-dot" data-day="0"></div>
+                                    <small class="d-block mt-1" style="font-size: 0.7rem;">M</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mini-activity-dot" data-day="1"></div>
+                                    <small class="d-block mt-1" style="font-size: 0.7rem;">T</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mini-activity-dot" data-day="2"></div>
+                                    <small class="d-block mt-1" style="font-size: 0.7rem;">W</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mini-activity-dot" data-day="3"></div>
+                                    <small class="d-block mt-1" style="font-size: 0.7rem;">T</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mini-activity-dot" data-day="4"></div>
+                                    <small class="d-block mt-1" style="font-size: 0.7rem;">F</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mini-activity-dot" data-day="5"></div>
+                                    <small class="d-block mt-1" style="font-size: 0.7rem;">S</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="mini-activity-dot" data-day="6"></div>
+                                    <small class="d-block mt-1" style="font-size: 0.7rem;">S</small>
+                                </div>
+                            </div>
+
+                            <!-- Weekly Summary -->
+                            <div class="weekly-summary">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <div class="activity-stat">
+                                            <i class="fas fa-fire text-warning me-1"></i>
+                                            <span id="weeklyStreak">0</span>
+                                            <small class="d-block">Streak</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="activity-stat">
+                                            <i class="fas fa-trophy text-success me-1"></i>
+                                            <span id="weeklyBest">0</span>
+                                            <small class="d-block">Best Day</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="activity-stat">
+                                            <i class="fas fa-chart-bar text-primary me-1"></i>
+                                            <span id="weeklyAvg">0</span>
+                                            <small class="d-block">Daily Avg</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Achievements -->
+                    <div class="dashboard-card p-4">
+                        <h3 class="fw-bold mb-4">
+                            <i class="fas fa-trophy me-2 text-warning"></i>
+                            <span data-en="Recent Achievements" data-sw="Mafanikio ya Hivi Karibuni">Recent
+                                Achievements</span>
+                        </h3>
+
+                        <div class="row g-3" id="achievementsList">
+                            <div class="empty-state">
+                                <i class="fas fa-trophy"></i>
+                                <p><span data-en="Complete activities to earn achievements" data-sw="Kamilisha shughuli ili kupata mafanikio">Complete activities to earn achievements</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Quick Actions -->
+                    <div class="dashboard-card p-4 mb-4">
+                        <h4 class="fw-bold mb-4">
+                            <i class="fas fa-bolt me-2 text-primary"></i>
+                            <span data-en="Quick Actions" data-sw="Vitendo vya Haraka">Quick Actions</span>
+                        </h4>
+
+                        <div class="d-grid gap-3">
+                            <a href="assessment.html" class="quick-action">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-clipboard-list fs-4 me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">
+                                            <span data-en="Take Assessment" data-sw="Chukua Tathmini">Take Assessment</span>
+                                        </div>
+                                        <small class="text-muted">
+                                            <span data-en="Discover your pathway" data-sw="Gundua njia yako">Discover your
+                                                pathway</span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <a href="chat.html" class="quick-action">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-comments fs-4 me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">
+                                            <span data-en="Chat with AI" data-sw="Zungumza na AI">Chat with AI</span>
+                                        </div>
+                                        <small class="text-muted">
+                                            <span data-en="Get career guidance" data-sw="Pata mwongozo wa kazi">Get career
+                                                guidance</span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <a href="careers.html" class="quick-action">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-search fs-4 me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">
+                                            <span data-en="Explore Careers" data-sw="Chunguza Kazi">Explore Careers</span>
+                                        </div>
+                                        <small class="text-muted">
+                                            <span data-en="Browse career options" data-sw="Vinjari chaguo za kazi">Browse career options</span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <a href="scenarios.html" class="quick-action">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-gamepad fs-4 me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">
+                                            <span data-en="Try Scenarios" data-sw="Jaribu Hali">Try Scenarios</span>
+                                        </div>
+                                        <small class="text-muted">
+                                            <span data-en="Interactive learning"
+                                                data-sw="Kujifunza kwa mwingiliano">Interactive learning</span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="dashboard-card p-4 mb-4">
+                        <h4 class="fw-bold mb-4">
+                            <i class="fas fa-lightbulb me-2 text-warning"></i>
+                            <span data-en="Recommendations" data-sw="Mapendekezo">Recommendations</span>
+                        </h4>
+
+                        <div id="recommendationsList">
+                            <!-- Recommendations will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Progress Summary -->
+                    <div class="dashboard-card p-4">
+                        <h4 class="fw-bold mb-4">
+                            <i class="fas fa-chart-pie me-2 text-info"></i>
+                            <span data-en="Progress Summary" data-sw="Muhtasari wa Maendeleo">Progress Summary</span>
+                        </h4>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small">
+                                    <span data-en="Career Assessments" data-sw="Tathmini za Kazi">Career Assessments</span>
+                                </span>
+                                <span class="small fw-bold" id="assessmentProgress">0/5</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 0%" id="assessmentProgressBar"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small">
+                                    <span data-en="Scenarios Completed" data-sw="Hali Zilizokamilika">Scenarios
+                                        Completed</span>
+                                </span>
+                                <span class="small fw-bold" id="scenarioProgress">0/12</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-warning" style="width: 0%" id="scenarioProgressBar"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small">
+                                    <span data-en="Careers Explored" data-sw="Kazi Zilichunguzwa">Careers Explored</span>
+                                </span>
+                                <span class="small fw-bold" id="careerExplorationProgress">0/20</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-info" style="width: 0%" id="careerExplorationProgressBar"></div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <a href="profile.html" class="btn btn-primary btn-sm">
+                                <span data-en="View Full Profile" data-sw="Ona Wasifu Kamili">View Full Profile</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer text-white py-4 mt-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                    <p class="mb-0 small text-light-emphasis">
+                        © 2025 CBE Career Guide. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 small fw-medium">
+                        Developed by <span class="text-warning fw-bold">Code Champ</span> 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://vxoiunxiaxhxhpbajjgl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4b2l1bnhpYXhoeGhwYmFqamdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyNTIzMjQsImV4cCI6MjA3MjgyODMyNH0.wR7ANQfYOKaQg1sh6067TX9u9p5dtwoM8FsfmiwztPk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = null;
+        let activityChart = null;
+        let userProgress = {
+            totalActivities: 0,
+            assessmentsCompleted: 0,
+            careersExplored: 0,
+            scenariosCompleted: 0,
+            resourcesViewed: 0,
+            currentLevel: 1,
+            overallProgress: 0,
+            assessmentProgress: 0,
+            careerProgress: 0,
+            weeklyActivity: [0, 0, 0, 0, 0, 0, 0]
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAuthState();
+            initializeLanguage();
+        });
+
+        async function checkAuthState() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    
+                    await loadUserProfile();
+                    await loadUserData();
+                    await initializeCharts();
+                    await loadAchievements();
+                    await loadRecommendations();
+                    animateProgressRings();
+                    
+                    // Hide loading, show content
+                    document.getElementById('loadingState').classList.add('d-none');
+                    document.getElementById('dashboardContent').classList.remove('d-none');
+                    
+                    // Log dashboard visit
+                    await logActivity('dashboard_visit', { 
+                        page: 'dashboard',
+                        timestamp: new Date().toISOString()
+                    });
+                } else {
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function loadUserProfile() {
+            try {
+                const { data: profile, error } = await supabase
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') throw error;
+
+                const name = profile?.full_name || currentUser.user_metadata?.full_name || 'Student';
+                document.getElementById('userName').textContent = name;
+                document.getElementById('welcomeName').textContent = name;
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                const name = currentUser.user_metadata?.full_name || 'Student';
+                document.getElementById('userName').textContent = name;
+                document.getElementById('welcomeName').textContent = name;
+            }
+        }
+
+        async function loadUserData() {
+            try {
+                // Load all user data from different tables
+                const [
+                    activitiesResult,
+                    assessmentsResult,
+                    careersResult,
+                    scenariosResult,
+                    resourcesResult,
+                    chatResult
+                ] = await Promise.all([
+                    supabase.from('user_activities').select('*').eq('user_id', currentUser.id),
+                    supabase.from('assessment_results').select('*').eq('user_id', currentUser.id),
+                    supabase.from('career_interactions').select('*').eq('user_id', currentUser.id),
+                    supabase.from('scenarios_progress').select('*').eq('user_id', currentUser.id).eq('completed', true),
+                    supabase.from('resource_downloads').select('*').eq('user_id', currentUser.id),
+                    supabase.from('chat_conversations').select('*').eq('user_id', currentUser.id)
+                ]);
+
+                // Process the data
+                const activities = activitiesResult.data || [];
+                const assessments = assessmentsResult.data || [];
+                const careers = careersResult.data || [];
+                const scenarios = scenariosResult.data || [];
+                const resources = resourcesResult.data || [];
+                const chats = chatResult.data || [];
+
+                // Calculate metrics
+                userProgress.totalActivities = activities.length + Math.floor(chats.length / 5); // Group chats
+                userProgress.assessmentsCompleted = assessments.length;
+                userProgress.careersExplored = new Set(careers.map(c => c.career_name)).size;
+                userProgress.scenariosCompleted = scenarios.length;
+                userProgress.resourcesViewed = resources.length;
+                userProgress.currentLevel = Math.floor(userProgress.totalActivities / 10) + 1;
+
+                // Calculate progress percentages
+                userProgress.overallProgress = Math.min((userProgress.totalActivities * 5), 100);
+                userProgress.assessmentProgress = Math.min((userProgress.assessmentsCompleted * 20), 100);
+                userProgress.careerProgress = Math.min((userProgress.careersExplored * 5), 100);
+
+                // Calculate weekly activity
+                userProgress.weeklyActivity = calculateWeeklyActivity(activities, chats);
+
+                // Update UI
+                updateMetricsDisplay();
+                updateProgressSummary();
+
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                // Keep default values and show empty states
+                updateMetricsDisplay();
+                updateProgressSummary();
+            }
+        }
+
+        function calculateWeeklyActivity(activities, chats) {
+            const weeklyData = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
+            const lastWeek = new Date();
+            lastWeek.setDate(lastWeek.getDate() - 7);
+
+            // Process activities
+            activities.forEach(activity => {
+                const date = new Date(activity.timestamp);
+                if (date >= lastWeek) {
+                    const dayIndex = (date.getDay() + 6) % 7; // Convert to Monday = 0
+                    weeklyData[dayIndex]++;
+                }
+            });
+
+            // Process chats (group by day)
+            chats.forEach(chat => {
+                const date = new Date(chat.timestamp);
+                if (date >= lastWeek) {
+                    const dayIndex = (date.getDay() + 6) % 7;
+                    weeklyData[dayIndex] += 0.2; // Partial credit for chats
+                }
+            });
+
+            return weeklyData.map(value => Math.floor(value));
+        }
+
+        function updateMetricsDisplay() {
+            document.getElementById('totalActivities').textContent = userProgress.totalActivities;
+            document.getElementById('assessmentsCompleted').textContent = userProgress.assessmentsCompleted;
+            document.getElementById('careersExplored').textContent = userProgress.careersExplored;
+            document.getElementById('currentLevel').textContent = userProgress.currentLevel;
+        }
+
+        function updateProgressSummary() {
+            // Assessment progress
+            const assessmentPercentage = Math.min((userProgress.assessmentsCompleted / 5) * 100, 100);
+            document.getElementById('assessmentProgress').textContent = `${userProgress.assessmentsCompleted}/5`;
+            document.getElementById('assessmentProgressBar').style.width = `${assessmentPercentage}%`;
+
+            // Scenario progress
+            const scenarioPercentage = Math.min((userProgress.scenariosCompleted / 12) * 100, 100);
+            document.getElementById('scenarioProgress').textContent = `${userProgress.scenariosCompleted}/12`;
+            document.getElementById('scenarioProgressBar').style.width = `${scenarioPercentage}%`;
+
+            // Career exploration progress
+            const careerPercentage = Math.min((userProgress.careersExplored / 20) * 100, 100);
+            document.getElementById('careerExplorationProgress').textContent = `${userProgress.careersExplored}/20`;
+            document.getElementById('careerExplorationProgressBar').style.width = `${careerPercentage}%`;
+        }
+
+        async function initializeCharts() {
+            try {
+                // Check if there's any activity data
+                const hasActivity = userProgress.weeklyActivity.some(day => day > 0);
+                
+                updateWeeklyStats(userProgress.weeklyActivity);
+
+                const ctx = document.getElementById('activityChart').getContext('2d');
+
+                if (!hasActivity) {
+                    document.getElementById('activityEmptyState').classList.remove('d-none');
+                    ctx.canvas.style.display = 'none';
+                    return;
+                }
+
+                const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+                activityChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dayLabels,
+                        datasets: [{
+                            label: 'Activities',
+                            data: userProgress.weeklyActivity,
+                            borderColor: '#6366F1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#6366F1',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                display: false,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            x: {
+                                display: false,
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        elements: {
+                            point: {
+                                hoverRadius: 6
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+                updateWeeklyStats([0, 0, 0, 0, 0, 0, 0]);
+                document.getElementById('activityEmptyState').classList.remove('d-none');
+            }
+        }
+
+        function updateWeeklyStats(activityCounts) {
+            const totalWeekly = activityCounts.reduce((sum, count) => sum + count, 0);
+            const maxDay = Math.max(...activityCounts);
+            const avgDaily = totalWeekly > 0 ? (totalWeekly / 7).toFixed(1) : 0;
+            
+            // Calculate streak (consecutive days with activity)
+            let currentStreak = 0;
+            for (let i = activityCounts.length - 1; i >= 0; i--) {
+                if (activityCounts[i] > 0) {
+                    currentStreak++;
+                } else {
+                    break;
+                }
+            }
+
+            // Update stats display
+            document.getElementById('weeklyTotal').textContent = `${totalWeekly} activities`;
+            document.getElementById('weeklyStreak').textContent = currentStreak;
+            document.getElementById('weeklyBest').textContent = maxDay;
+            document.getElementById('weeklyAvg').textContent = avgDaily;
+
+            // Update activity dots
+            activityCounts.forEach((count, index) => {
+                const dot = document.querySelector(`[data-day="${index}"]`);
+                if (dot) {
+                    if (count > 0) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        async function loadAchievements() {
+            try {
+                const { data: achievements, error } = await supabase
+                    .from('user_achievements')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('earned_at', { ascending: false })
+                    .limit(4);
+
+                if (error) throw error;
+
+                const container = document.getElementById('achievementsList');
+
+                if (achievements && achievements.length > 0) {
+                    const achievementColors = ['warning', 'primary', 'success', 'info'];
+                    
+                    container.innerHTML = achievements.map((achievement, index) => `
+                        <div class="col-6">
+                            <div class="achievement-badge h-100">
+                                <i class="fas fa-trophy fs-3 mb-2"></i>
+                                <h6 class="fw-bold">${achievement.achievement_name}</h6>
+                                <p class="small mb-1 opacity-90">${achievement.achievement_description}</p>
+                                <small class="opacity-75">${formatRelativeDate(achievement.earned_at)}</small>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    // Show empty state
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-trophy"></i>
+                            <p><span data-en="Complete activities to earn achievements" data-sw="Kamilisha shughuli ili kupata mafanikio">Complete activities to earn achievements</span></p>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Error loading achievements:', error);
+                // Show empty state
+                const container = document.getElementById('achievementsList');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-trophy"></i>
+                        <p><span data-en="Complete activities to earn achievements" data-sw="Kamilisha shughuli ili kupata mafanikio">Complete activities to earn achievements</span></p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadRecommendations() {
+            try {
+                const recommendations = generateRecommendations();
+
+                const container = document.getElementById('recommendationsList');
+                container.innerHTML = recommendations.map(rec => `
+                    <div class="recommendation-card mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold mb-1">${rec.title}</h6>
+                            <span class="badge bg-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'info'} bg-opacity-20 text-${rec.priority === 'high' ? 'danger' : rec.priority === 'medium' ? 'warning' : 'info'}">
+                                ${rec.priority}
+                            </span>
+                        </div>
+                        <p class="text-muted small mb-2">${rec.description}</p>
+                        <a href="${rec.link}" class="btn btn-outline-primary btn-sm">
+                            ${rec.action}
+                            <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+            }
+        }
+
+        function generateRecommendations() {
+            const recommendations = [];
+
+            // Check assessment status
+            if (userProgress.assessmentsCompleted === 0) {
+                recommendations.push({
+                    title: 'Take Your First Assessment',
+                    description: 'Discover your ideal career pathway with our comprehensive assessment.',
+                    action: 'Start Assessment',
+                    link: 'assessment.html',
+                    priority: 'high'
+                });
+            } else if (userProgress.assessmentsCompleted < 3) {
+                recommendations.push({
+                    title: 'Complete More Assessments',
+                    description: 'Take additional assessments to get more accurate pathway recommendations.',
+                    action: 'Take Assessment',
+                    link: 'assessment.html',
+                    priority: 'medium'
+                });
+            }
+
+            // Check career exploration
+            if (userProgress.careersExplored < 5) {
+                recommendations.push({
+                    title: 'Explore More Careers',
+                    description: 'Browse our extensive career database to discover new opportunities.',
+                    action: 'Browse Careers',
+                    link: 'careers.html',
+                    priority: 'medium'
+                });
+            }
+
+            // Check scenarios completion
+            if (userProgress.scenariosCompleted < 3) {
+                recommendations.push({
+                    title: 'Try Interactive Scenarios',
+                    description: 'Experience real-world career situations through our interactive scenarios.',
+                    action: 'Start Scenario',
+                    link: 'scenarios.html',
+                    priority: 'low'
+                });
+            }
+
+            // Default recommendation if none match
+            if (recommendations.length === 0) {
+                recommendations.push({
+                    title: 'Chat with AI Counselor',
+                    description: 'Get personalized career guidance from our AI counselor.',
+                    action: 'Start Chat',
+                    link: 'chat.html',
+                    priority: 'low'
+                });
+            }
+
+            return recommendations.slice(0, 3); // Limit to 3 recommendations
+        }
+
+        function animateProgressRings() {
+            // Animate progress rings on page load with real data
+            setTimeout(() => {
+                const rings = document.querySelectorAll('.progress-ring-progress');
+                const percentages = [
+                    userProgress.overallProgress,
+                    userProgress.assessmentProgress,
+                    userProgress.careerProgress
+                ];
+
+                const textElements = [
+                    document.getElementById('overallProgressText'),
+                    document.getElementById('assessmentProgressText'),
+                    document.getElementById('careerProgressText')
+                ];
+
+                rings.forEach((ring, index) => {
+                    const percentage = percentages[index];
+                    const offset = 283 - (283 * percentage / 100);
+                    ring.style.strokeDashoffset = offset;
+
+                    // Update percentage text
+                    if (textElements[index]) {
+                        textElements[index].textContent = `${Math.round(percentage)}%`;
+                    }
+                });
+            }, 500);
+        }
+
+        async function logActivity(activityType, activityData = {}) {
+            try {
+                const { error } = await supabase
+                    .from('user_activities')
+                    .insert({
+                        user_id: currentUser.id,
+                        activity_type: activityType,
+                        activity_data: activityData,
+                        page_visited: window.location.pathname,
+                        session_id: currentUser.id + '_' + Date.now()
+                    });
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Error logging activity:', error);
+            }
+        }
+
+        function formatRelativeDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays <= 7) return `${diffDays} days ago`;
+            if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+            return `${Math.ceil(diffDays / 30)} months ago`;
+        }
+
+        async function signOut() {
+            try {
+                await logActivity('sign_out', { page: 'dashboard' });
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        }
+
+        function initializeLanguage() {
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+            document.getElementById('languageSelect').value = savedLanguage;
+            changeLanguage();
+        }
+
+        function changeLanguage() {
+            const select = document.getElementById('languageSelect');
+            const currentLanguage = select.value;
+            localStorage.setItem('selectedLanguage', currentLanguage);
+
+            document.querySelectorAll('[data-en]').forEach(element => {
+                if (currentLanguage === 'en') {
+                    element.textContent = element.getAttribute('data-en');
+                } else {
+                    element.textContent = element.getAttribute('data-sw');
+                }
+            });
+        }
+
+        // Add staggered animations to metric cards
+        document.querySelectorAll('.metric-card').forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+    </script>
+
+</body>
+
+</html>
