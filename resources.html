@@ -1043,8 +1043,7 @@ Website: ${scholarship.website}
                 </div>
             `).join('');
         }
-
-       function openWebsite(url, title) {
+        function openWebsite(url, title) {
   if (!url || url === '#') {
     alert('Website link not available.');
     return;
@@ -1063,8 +1062,8 @@ Website: ${scholarship.website}
     showErrorMessage('Download link not available.');
     return;
   }
-        }
-        // Start real download
+
+  // Start real download
   const link = document.createElement('a');
   link.href = fileUrl;
   link.download = fileUrl.split('/').pop();
@@ -1079,7 +1078,7 @@ Website: ${scholarship.website}
   if (currentUser) {
     trackResourceView('download', resourceName);
   }
-
+}
         async function trackResourceView(type, resourceName) {
             try {
                 await supabase
