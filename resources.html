@@ -1064,6 +1064,21 @@ Website: ${scholarship.website}
     return;
   }
         }
+        // Start real download
+  const link = document.createElement('a');
+  link.href = fileUrl;
+  link.download = fileUrl.split('/').pop();
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // Optional: Show success message
+  showSuccessMessage(`${resourceName} download started!`);
+
+  // Optional: Track if user is logged in
+  if (currentUser) {
+    trackResourceView('download', resourceName);
+  }
 
         async function trackResourceView(type, resourceName) {
             try {
