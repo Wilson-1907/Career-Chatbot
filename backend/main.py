@@ -143,7 +143,7 @@ if __name__ == "__main__":
     print("🚀 Starting CBE Chat Backend...")
     print("📍 API: http://localhost:8000")
     print("📚 Docs: http://localhost:8000/docs")
-    print("💬 Chat: POST http://localhost:8000/chat")
+    print("💬 Chat: POST https://career-backend-production-8a68.up.railway.app/chat/")
     print("✅ Ready for frontend!")
     
     uvicorn.run(app, host="127.0.0.1", port=8000)
